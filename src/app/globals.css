@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  color: #e5e7eb;
+  background: #0f1117;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Light mode overrides */
+html.light body {
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+/* Backgrounds */
+html.light .bg-\[\#0f1117\] { background-color: #f1f5f9 !important; }
+html.light .bg-\[\#0f1117\]\/80 { background-color: rgba(241, 245, 249, 0.85) !important; }
+html.light .bg-\[\#0f1117\]\/50 { background-color: rgba(241, 245, 249, 0.5) !important; }
+html.light .bg-\[\#1a1d27\] { background-color: #ffffff !important; }
+html.light .bg-\[\#252836\] { background-color: #f1f5f9 !important; }
+html.light .bg-gray-800 { background-color: #e2e8f0 !important; }
+html.light .bg-gray-800\/50 { background-color: rgba(226, 232, 240, 0.5) !important; }
+
+/* Text — higher contrast mapping */
+html.light .text-gray-100 { color: #0f172a !important; }
+html.light .text-gray-200 { color: #1e293b !important; }
+html.light .text-gray-300 { color: #334155 !important; }
+html.light .text-gray-400 { color: #475569 !important; }
+html.light .text-gray-500 { color: #64748b !important; }
+html.light .text-gray-600 { color: #94a3b8 !important; }
+html.light .text-gray-700 { color: #94a3b8 !important; }
+
+/* Borders */
+html.light .border-gray-600 { border-color: #cbd5e1 !important; }
+html.light .border-gray-700 { border-color: #cbd5e1 !important; }
+html.light .border-gray-800 { border-color: #e2e8f0 !important; }
+html.light .border-gray-800\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
+
+/* Accent colors — slightly deeper for light backgrounds */
+html.light .text-blue-400 { color: #2563eb !important; }
+html.light .text-blue-500 { color: #2563eb !important; }
+html.light .text-red-400 { color: #dc2626 !important; }
+html.light .text-green-400 { color: #16a34a !important; }
+html.light .text-yellow-400 { color: #ca8a04 !important; }
+html.light .text-orange-400 { color: #ea580c !important; }
+
+/* Accent backgrounds */
+html.light .bg-blue-900\/40 { background-color: rgba(37, 99, 235, 0.1) !important; }
+html.light .bg-red-900\/30 { background-color: rgba(220, 38, 38, 0.1) !important; }
+html.light .bg-red-900\/20 { background-color: rgba(220, 38, 38, 0.08) !important; }
+html.light .bg-yellow-900\/40 { background-color: rgba(202, 138, 4, 0.1) !important; }
+html.light .bg-emerald-900\/40 { background-color: rgba(5, 150, 105, 0.1) !important; }
+html.light .bg-blue-900\/10 { background-color: rgba(37, 99, 235, 0.06) !important; }
+
+/* Accent borders */
+html.light .border-blue-800 { border-color: #93c5fd !important; }
+html.light .border-yellow-800 { border-color: #fde68a !important; }
+html.light .border-yellow-800\/50 { border-color: rgba(253, 230, 138, 0.5) !important; }
+html.light .border-emerald-800 { border-color: #6ee7b7 !important; }
+html.light .border-red-800 { border-color: #fca5a5 !important; }
+
+/* Inputs */
+html.light .placeholder-gray-500::placeholder { color: #94a3b8 !important; }
+html.light .placeholder-gray-600::placeholder { color: #94a3b8 !important; }
+html.light .focus\:border-blue-500:focus { border-color: #3b82f6 !important; }
+html.light .focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6 !important; }
+
+/* Hovers */
+html.light .hover\:bg-\[\#252836\]:hover { background-color: #f1f5f9 !important; }
+html.light .hover\:text-gray-200:hover { color: #1e293b !important; }
+html.light .hover\:text-gray-300:hover { color: #334155 !important; }
+html.light .hover\:text-blue-400:hover { color: #2563eb !important; }
+html.light .hover\:border-blue-800:hover { border-color: #93c5fd !important; }
+html.light .hover\:border-gray-600:hover { border-color: #cbd5e1 !important; }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar-track { background: #f1f5f9; }
+html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1d27;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
