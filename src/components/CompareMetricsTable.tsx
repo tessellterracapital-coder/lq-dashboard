@@ -140,9 +140,17 @@ export default function CompareMetricsTable({ metros }: CompareMetricsTableProps
       <p className="px-4 py-3 text-xs text-gray-600 border-t border-gray-800/50">
         <strong className="text-gray-500">Excess</strong> is jobs beyond what the metro
         needs to serve itself &mdash; the export base, in jobs. Positive means the sector
-        exports its surplus; negative means the metro imports the shortfall.{" "}
+        is larger than the national mix; negative means it is smaller.{" "}
         <strong className="text-gray-500">% of metro</strong> expresses that against the
         metro&apos;s total employment, so metros of different sizes compare directly.
+      </p>
+      <p className="px-4 pb-3 text-xs text-gray-600">
+        Surpluses and shortfalls cancel to zero by construction wherever BLS publishes all
+        ten supersectors &mdash; a metro&apos;s export base equals its combined shortfall
+        everywhere else. They are the same fact viewed twice. Excess reads as exported
+        where the activity can cross a boundary (manufacturing, information, finance); read
+        it more carefully where it cannot (construction, healthcare, government, leisure)
+        &mdash; nobody imports a building.
       </p>
     </div>
   );
