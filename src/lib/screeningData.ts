@@ -6,7 +6,13 @@ export interface ScreeningSector {
   nationalEmployment?: number;
   nationalPctOfTotal?: number;
   lq: number;
-  classification: "Export" | "Local" | "Import";
+  /**
+   * Never read — useLQData and useMultiLQData both derive this from the LQ via
+   * classifyLQ, so files of any vintage (the old 1.2 threshold, or the older
+   * "Import"/"Local" wording) cannot leak a stale label into the UI. Written for
+   * anyone consuming the JSON directly.
+   */
+  classification: "Export" | "Balanced" | "Under-represented";
   /**
    * Jobs beyond what the metro needs to serve itself, in thousands. Negative =
    * net import. Read this; do not recompute it from nationalPctOfTotal — that

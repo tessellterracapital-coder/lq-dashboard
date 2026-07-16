@@ -27,18 +27,31 @@
 
 export const EXPORT_THRESHOLD = 1.0;
 
-export type Classification = "Export" | "Local" | "Import";
+/**
+ * Below 1.0 is "Under-represented", not "Import".
+ *
+ * Economic base theory calls a below-1.0 sector an import, which assumes the
+ * activity can cross a boundary. Much of it cannot. Los Angeles has a
+ * construction LQ of 0.70 and −109,118 excess, but LA does not import buildings
+ * from Ohio — construction happens where the building goes. The same holds for
+ * healthcare, government and leisure. What the number actually says is that the
+ * sector is smaller than the national mix, which is true either way.
+ *
+ * "Export" is kept: a surplus above local need really is sold outward, and that
+ * reading holds wherever the activity is tradable.
+ */
+export type Classification = "Export" | "Balanced" | "Under-represented";
 
 /**
  * Classify a sector by LQ.
- * > 1.0 exports its surplus; < 1.0 imports the shortfall; exactly 1.0 produces
- * precisely what it consumes (~1.5% of metro-sector pairs land here after
+ * > 1.0 has a surplus beyond local need; < 1.0 is smaller than the national
+ * mix; exactly 1.0 matches it (~1.5% of metro-sector pairs land here after
  * two-decimal rounding).
  */
 export function classifyLQ(lq: number): Classification {
   if (lq > EXPORT_THRESHOLD) return "Export";
-  if (lq < EXPORT_THRESHOLD) return "Import";
-  return "Local";
+  if (lq < EXPORT_THRESHOLD) return "Under-represented";
+  return "Balanced";
 }
 
 export function isExport(lq: number): boolean {

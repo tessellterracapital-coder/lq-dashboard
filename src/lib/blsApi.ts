@@ -223,7 +223,8 @@ export function computeLQ(
         nationalEmployment: national?.value ?? 0,
         nationalPctOfTotal: 0,
         lq: 0,
-        classification: "Import" as const,
+        // hasData is false, so nothing renders this; it is a placeholder.
+        classification: "Under-represented" as const,
         excessEmployment: 0,
         hasData: false,
       };

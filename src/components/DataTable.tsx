@@ -130,7 +130,7 @@ export default function DataTable({ results }: DataTableProps) {
                   className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                     row.classification === "Export"
                       ? "bg-blue-900/40 text-blue-400"
-                      : row.classification === "Import"
+                      : row.classification === "Under-represented"
                       ? "bg-red-900/30 text-red-400"
                       : "bg-gray-800 text-gray-400"
                   }`}
@@ -144,6 +144,16 @@ export default function DataTable({ results }: DataTableProps) {
       </table>
       {withData.length === 0 && (
         <div className="px-4 py-8 text-center text-gray-500">No data available</div>
+      )}
+      {withData.length > 0 && (
+        <p className="px-4 py-3 text-xs text-gray-600 border-t border-gray-800/50">
+          Surpluses and shortfalls cancel to zero by construction wherever BLS publishes
+          all ten supersectors &mdash; a metro&apos;s export base equals its combined
+          shortfall everywhere else. They are the same fact viewed twice. Excess reads as
+          exported where the activity can cross a boundary (manufacturing, information,
+          finance); read it more carefully where it cannot (construction, healthcare,
+          government, leisure) &mdash; nobody imports a building.
+        </p>
       )}
     </div>
   );

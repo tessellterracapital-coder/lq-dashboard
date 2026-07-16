@@ -69,7 +69,7 @@ function CustomTooltip({ active, payload }: TooltipProps) {
             className={
               d.classification === "Export"
                 ? "text-blue-400"
-                : d.classification === "Import"
+                : d.classification === "Under-represented"
                 ? "text-red-400"
                 : "text-gray-300"
             }

@@ -433,7 +433,13 @@ function buildAllMetroData(
         // LQ > 1.0 means the metro produces more than it consumes — the surplus
         // is exported. This is definitional (economic base theory), not a
         // statistical threshold. Exactly 1.0 = produces precisely what it needs.
-        classification: lq > 1.0 ? "Export" : lq < 1.0 ? "Import" : "Local",
+        //
+        // Below 1.0 is "Under-represented", not "Import": the import reading
+        // assumes the activity can cross a boundary, and much of it cannot —
+        // nobody imports a building. Mirrors classifyLQ in src/lib/lqMetrics.ts.
+        // The app derives this from the LQ at read time and never reads this
+        // field, so it is here for direct consumers of the JSON.
+        classification: lq > 1.0 ? "Export" : lq < 1.0 ? "Under-represented" : "Balanced",
         // Excess (basic) employment: jobs beyond what the metro needs to serve
         // itself. Computed from unrounded shares. This — not the LQ ratio — is
         // the magnitude an employment multiplier acts on.
