@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { type MetroLQData } from "@/lib/useMultiLQData";
 import { type TrendResult } from "@/lib/blsApi";
-import { computeMatchedGrowth } from "@/lib/lqMetrics";
+import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
 
 const METRO_COLORS = ["#3b82f6", "#f59e0b", "#10b981"];
 
@@ -87,6 +87,11 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
   const allEmployments = metroDataSets.flatMap((ds) => ds.data.map((d) => d.employment));
   const minEmp = Math.min(...allEmployments);
   const maxEmp = Math.max(...allEmployments);
+
+  // Frame the axes across every metro plotted, keeping the LQ = 1.0 and
+  // growth = 0 reference lines in view so the quadrants always render.
+  const lqDomain = paddedDomain(metroDataSets.flatMap((ds) => ds.data.map((d) => d.lq)), 1.0, 0.1);
+  const growthDomain = paddedDomain(metroDataSets.flatMap((ds) => ds.data.map((d) => d.growth)), 0, 5);
 
   function getBubbleRadius(employment: number): number {
     if (maxEmp === minEmp) return Math.sqrt(675 / Math.PI);
@@ -178,6 +183,7 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
             unit="%"
             tick={{ fill: "#9ca3af", fontSize: 12 }}
             axisLine={{ stroke: "#374151" }}
+            domain={growthDomain}
           >
             <Label
               value="10-Year Employment Growth %"
@@ -192,7 +198,8 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
             name="LQ"
             tick={{ fill: "#9ca3af", fontSize: 12 }}
             axisLine={{ stroke: "#374151" }}
-            domain={[0, "auto"]}
+            domain={lqDomain}
+            tickFormatter={(v: number) => v.toFixed(2)}
           >
             <Label
               value="Location Quotient"

@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { type LQResult } from "@/lib/blsApi";
 import { type TrendResult } from "@/lib/blsApi";
-import { computeMatchedGrowth } from "@/lib/lqMetrics";
+import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
 
 interface LQBubbleChartProps {
   results: LQResult[];
@@ -81,6 +81,11 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
 
   const maxEmp = Math.max(...data.map((d) => d.employment));
   const minEmp = Math.min(...data.map((d) => d.employment));
+
+  // Frame the axes around the data, keeping the LQ = 1.0 and growth = 0
+  // reference lines in view so the quadrants always render.
+  const lqDomain = paddedDomain(data.map((d) => d.lq), 1.0, 0.1);
+  const growthDomain = paddedDomain(data.map((d) => d.growth), 0, 5);
 
   // Compute bubble radius from employment for label sizing.
   // ZAxis range is [200, 2000] which maps to area, so radius = sqrt(area / pi).
@@ -153,6 +158,7 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
             unit="%"
             tick={{ fill: "#9ca3af", fontSize: 12 }}
             axisLine={{ stroke: "#374151" }}
+            domain={growthDomain}
           >
             <Label
               value="10-Year Employment Growth %"
@@ -167,7 +173,8 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
             name="LQ"
             tick={{ fill: "#9ca3af", fontSize: 12 }}
             axisLine={{ stroke: "#374151" }}
-            domain={[0, "auto"]}
+            domain={lqDomain}
+            tickFormatter={(v: number) => v.toFixed(2)}
           >
             <Label
               value="Location Quotient"

@@ -167,3 +167,38 @@ export function growthWindow(points: DatedEmployment[]): { start: string; end: s
   if (!sorted.some((p) => p.date === startDate)) return null;
   return { start: startDate, end: end.date };
 }
+
+// ---------------------------------------------------------------------------
+// Chart scaling
+// ---------------------------------------------------------------------------
+
+/**
+ * A padded axis domain that frames the data instead of anchoring at zero.
+ *
+ * LQ clusters tightly around 1.0 (a typical metro spans ~0.75-1.25), so a
+ * [0, "auto"] domain spends most of the axis on empty space below the data and
+ * pushes the LQ = 1.0 reference line toward the top. Growth spans negative
+ * values, and bubbles are drawn with a radius around their point, so an
+ * unpadded domain clips the extremes at the plot edge.
+ *
+ * `anchor` is the reference line (LQ = 1.0, growth = 0), kept in view so the
+ * quadrants always render. Bounds snap outward to `step` for clean ticks.
+ */
+export function paddedDomain(
+  values: number[],
+  anchor: number,
+  step: number
+): [number, number] {
+  const finite = values.filter((v) => Number.isFinite(v));
+  if (finite.length === 0) return [anchor - step, anchor + step];
+
+  const lo = Math.min(...finite, anchor);
+  const hi = Math.max(...finite, anchor);
+  const pad = (hi - lo || step) * 0.12;
+
+  const round = (n: number) => Math.round(n * 1e6) / 1e6;
+  return [
+    round(Math.floor((lo - pad) / step) * step),
+    round(Math.ceil((hi + pad) / step) * step),
+  ];
+}
