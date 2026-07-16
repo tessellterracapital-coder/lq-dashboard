@@ -1,35 +1,46 @@
 "use client";
 
+// Canonical slugs, matching public/data/lq_all_metros.json. These were all
+// legacy slugs from the retired METROS list; they still resolved via the
+// legacyMetroSlugs redirect table, but that table is a transitional shim that
+// should not be depended on — every preset would have broken at once when it
+// is eventually pruned.
 const PRESETS = [
   {
     label: "DC vs NoVA",
     desc: "Government vs. private-sector economy",
-    params: "m1=washington-dc-md&m2=arlington-nova",
+    params:
+      "m1=washington-dc-md-metropolitan-division&m2=arlington-alexandria-reston-va-wv-metropolitan-division",
   },
   {
     label: "Sun Belt Tech Hubs",
     desc: "Austin vs Raleigh vs Nashville",
-    params: "m1=austin-tx&m2=raleigh-nc&m3=nashville-tn",
+    params:
+      "m1=austin-round-rock-san-marcos-tx&m2=raleigh-cary-nc&m3=nashville-davidson-murfreesboro-franklin-tn",
   },
   {
     label: "Texas Triangle",
     desc: "Houston vs Dallas vs Austin",
-    params: "m1=houston-tx&m2=dallas-tx&m3=austin-tx",
+    params:
+      "m1=houston-pasadena-the-woodlands-tx&m2=dallas-fort-worth-arlington-tx&m3=austin-round-rock-san-marcos-tx",
   },
   {
     label: "Great Lakes",
     desc: "Chicago vs Detroit vs Minneapolis",
-    params: "m1=chicago-il&m2=detroit-mi&m3=minneapolis-mn",
+    params:
+      "m1=chicago-naperville-elgin-il-in&m2=detroit-warren-dearborn-mi&m3=minneapolis-st-paul-bloomington-mn-wi",
   },
   {
     label: "West Coast Giants",
     desc: "LA vs SF vs Seattle",
-    params: "m1=los-angeles-ca&m2=san-francisco-ca&m3=seattle-wa",
+    params:
+      "m1=los-angeles-long-beach-anaheim-ca&m2=san-francisco-oakland-fremont-ca&m3=seattle-tacoma-bellevue-wa",
   },
   {
     label: "Florida Markets",
     desc: "Miami vs Orlando vs Tampa",
-    params: "m1=miami-fl&m2=orlando-fl&m3=tampa-fl",
+    params:
+      "m1=miami-fort-lauderdale-west-palm-beach-fl&m2=orlando-kissimmee-sanford-fl&m3=tampa-st-petersburg-clearwater-fl",
   },
 ];
 
