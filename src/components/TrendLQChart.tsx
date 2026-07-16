@@ -99,7 +99,10 @@ export default function TrendLQChart({ trendData, visibleSectors }: TrendLQChart
               return (
                 <div className="bg-[#252836] border border-gray-700 rounded-lg px-4 py-3 shadow-xl max-h-64 overflow-y-auto">
                   <div className="font-semibold text-gray-200 mb-2">{monthName} {year}</div>
-                  {payload
+                  {/* Copy before sorting: recharts types payload as a
+                      ReadonlyArray, and sort() mutates in place — sorting it
+                      directly would mutate recharts' internal payload. */}
+                  {[...payload]
                     .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
                     .map((entry, i) => {
                       const series = trendData.series.find((s) => s.supersectorCode === entry.dataKey);
@@ -107,7 +110,7 @@ export default function TrendLQChart({ trendData, visibleSectors }: TrendLQChart
                       return (
                         <div key={i} className="flex items-center gap-2 text-sm">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                          <span className="text-gray-400 truncate">{series ? shortenLabel(series.label) : entry.dataKey}</span>
+                          <span className="text-gray-400 truncate">{series ? shortenLabel(series.label) : String(entry.dataKey ?? "")}</span>
                           <span className={`font-mono ml-auto ${lq >= 1.2 ? "text-blue-400" : lq < 0.8 ? "text-red-400" : "text-gray-100"}`}>
                             {lq.toFixed(2)}
                           </span>

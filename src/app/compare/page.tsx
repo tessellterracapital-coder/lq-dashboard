@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { METROS, type Metro, getMetroBySlug } from "@/data/metros";
 import { useMultiLQData } from "@/lib/useMultiLQData";
@@ -16,7 +16,7 @@ type CompareView = "bar" | "bubble";
 
 const MAX_METROS = 3;
 
-export default function ComparePage() {
+function ComparePageInner() {
   const [chartView, setChartView] = useState<CompareView>("bubble");
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -246,5 +246,15 @@ export default function ComparePage() {
         <ComparePresets />
       )}
     </div>
+  );
+}
+
+// useSearchParams() opts the subtree into client-side rendering, so Next
+// requires a Suspense boundary above it to prerender this route statically.
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12 text-gray-500">Loading…</div>}>
+      <ComparePageInner />
+    </Suspense>
   );
 }
