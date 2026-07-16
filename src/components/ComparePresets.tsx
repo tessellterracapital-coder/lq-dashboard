@@ -24,15 +24,15 @@ const PRESETS = [
       "m1=denver-aurora-centennial-co&m2=salt-lake-city-murray-ut&m3=boise-city-id",
   },
   {
-    // Only Midland actually is one: Mining/Logging/Construction at LQ 5.90 is
-    // 27.9% of the metro, and its next sector is LQ 1.01 (+88 jobs) — the whole
-    // export base is one industry. The other two are famous for a signature
-    // sector but are not dependent on it; the excess columns are what show the
-    // difference. See the note in the compare table.
-    label: "One-Industry Towns",
-    desc: "San Jose vs Detroit vs Midland",
+    // Ordered by how far each has moved from manufacturing, which the table
+    // reads straight off: Milwaukee still leads on Manufacturing (LQ 1.61),
+    // Cleveland is mid-transition (1.43, with Education & Health at 1.11), and
+    // Pittsburgh has finished — Manufacturing is 0.92, below the national mix,
+    // while Education & Health at 1.29 (+61,195 jobs) is now its export base.
+    label: "Rust Belt Reinvention",
+    desc: "Milwaukee vs Cleveland vs Pittsburgh",
     params:
-      "m1=san-jose-sunnyvale-santa-clara-ca&m2=detroit-warren-dearborn-mi&m3=midland-tx",
+      "m1=milwaukee-waukesha-wi&m2=cleveland-oh&m3=pittsburgh-pa",
   },
   {
     // All three are top-10 for 10-year employment growth among the 71 metros
