@@ -9,8 +9,7 @@ import { useMultiLQData } from "@/lib/useMultiLQData";
 import MetroSelector from "@/components/MetroSelector";
 import CompareChart from "@/components/CompareChart";
 import CompareBubbleChart from "@/components/CompareBubbleChart";
-import CompareSummaryTable from "@/components/CompareSummaryTable";
-import CompareDifferences from "@/components/CompareDifferences";
+import CompareMetricsTable from "@/components/CompareMetricsTable";
 import ComparePresets from "@/components/ComparePresets";
 import CompareDownloadButton from "@/components/CompareDownloadButton";
 
@@ -266,13 +265,11 @@ function ComparePageInner() {
             <CompareChart metros={metros} />
           )}
 
-          <CompareDifferences metros={metros} />
-
           <div>
             <h2 className="text-sm uppercase tracking-wider text-gray-500 mb-3">
-              LQ by Supersector
+              LQ &amp; Export Base by Supersector
             </h2>
-            <CompareSummaryTable metros={metros} />
+            <CompareMetricsTable metros={metros} />
           </div>
         </>
       )}
