@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchNationalData, fetchMetroData, computeLQ, fetchTrendData, type LQResult, type EmploymentData, type TrendResult } from "./blsApi";
 import { loadScreeningData, loadMetroDetail } from "./screeningData";
+import { classifyLQ, excessEmployment } from "./lqMetrics";
 
 export interface MetroLQData {
   stateCode: string;
@@ -97,7 +98,10 @@ export function useMultiLQData(
                 areaCode: sel.areaCode,
                 metroName: sel.name,
                 metroSlug: sel.slug,
-                lqResults: staticMetro.sectors.map((s) => ({
+                // No `as LQResult[]` here: the assertion this replaces was
+                // hiding a missing excessEmployment, which reached the compare
+                // table as undefined and rendered "-NaN".
+                lqResults: staticMetro.sectors.map((s): LQResult => ({
                   supersectorCode: s.code,
                   label: s.label,
                   localEmployment: s.employment,
@@ -105,9 +109,18 @@ export function useMultiLQData(
                   nationalEmployment: s.nationalEmployment ?? 0,
                   nationalPctOfTotal: s.nationalPctOfTotal ?? 0,
                   lq: s.lq,
-                  classification: s.classification,
+                  // Derived, not read from the JSON — same as useLQData. Data
+                  // files built before the 1.0 threshold change carry a stale
+                  // `classification` computed at 1.2.
+                  classification: classifyLQ(s.lq),
+                  excessEmployment: excessEmployment(
+                    s.employment,
+                    staticMetro.totalEmployment,
+                    s.nationalPctOfTotal,
+                    s.lq
+                  ),
                   hasData: true,
-                })) as LQResult[],
+                })),
                 metroData: metroDataMap,
                 trendData,
                 totalEmployment: staticMetro.totalEmployment,
