@@ -7,13 +7,15 @@
 // is eventually pruned.
 const PRESETS = [
   {
-    // Three metros, three different dominant sectors, all far above the national
-    // mix — the clearest demonstration of what an LQ actually measures. San Jose
-    // is the most concentrated large metro in the dataset.
-    label: "Specialized Economies",
-    desc: "San Jose vs Las Vegas vs Des Moines",
+    // Worth knowing when reading this one: CES counts public-university staff
+    // under Government, not Education & Health Services. So the campus shows up
+    // as Government LQ (Ann Arbor 2.60, Madison 1.53, Durham 1.36), and
+    // Education & Health only lifts where the university is private — Durham has
+    // both, Duke landing in Education & Health (1.33) and UNC in Government.
+    label: "College Towns",
+    desc: "Madison vs Ann Arbor vs Durham",
     params:
-      "m1=san-jose-sunnyvale-santa-clara-ca&m2=las-vegas-henderson-north-las-vegas-nv&m3=des-moines-west-des-moines-ia",
+      "m1=madison-wi&m2=ann-arbor-mi&m3=durham-chapel-hill-nc",
   },
   {
     label: "Sun Belt Tech Hubs",
@@ -28,12 +30,13 @@ const PRESETS = [
       "m1=houston-pasadena-the-woodlands-tx&m2=dallas-fort-worth-arlington-tx&m3=austin-round-rock-san-marcos-tx",
   },
   {
-    // Cleveland, not Minneapolis: the Twin Cities sit on the Mississippi, not
-    // the lakes. All three of these are lakefront.
-    label: "Great Lakes",
-    desc: "Chicago vs Detroit vs Cleveland",
+    // All three are top-10 for 10-year employment growth among the 71 metros
+    // over 400K jobs: Austin #1 (42.3%), Nashville #4 (26.8%), Las Vegas #8
+    // (25.0%).
+    label: "Boom Towns",
+    desc: "Las Vegas vs Nashville vs Austin",
     params:
-      "m1=chicago-naperville-elgin-il-in&m2=detroit-warren-dearborn-mi&m3=cleveland-oh",
+      "m1=las-vegas-henderson-north-las-vegas-nv&m2=nashville-davidson-murfreesboro-franklin-tn&m3=austin-round-rock-san-marcos-tx",
   },
   {
     label: "West Coast Giants",
