@@ -77,7 +77,7 @@ export default function ScreenPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">Filter Metros</h1>
         <p className="text-sm text-gray-500 mt-1">
           Search across {data?.metroCount ?? "400+"} U.S. metro areas to find markets matching
-          your investment criteria.
+          your criteria.
           {data && (
             <span className="text-gray-600">
               {" "}Data: {data.nationalDataPeriod}

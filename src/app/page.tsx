@@ -73,8 +73,8 @@ export default function Home() {
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
           Free Location Quotient analysis for 400+ U.S. metro areas. Identify export sectors,
-          assess concentration risk, compare markets, and filter for investment criteria
-          &mdash;&nbsp;all powered by Bureau of Labor Statistics employment data.
+          assess concentration risk, compare markets, and screen for the criteria that
+          matter to you &mdash;&nbsp;all powered by Bureau of Labor Statistics employment data.
         </p>
         <div className="flex justify-center">
           <MetroSelector onSelect={handleSelect} metros={allMetros} />
@@ -167,11 +167,13 @@ export default function Home() {
           </div>
 
           <p>
-            <strong className="text-gray-200">For real estate investors:</strong> High-LQ
-            sectors drive employment demand, population growth, and housing demand. But
+            <strong className="text-gray-200">Why it matters:</strong> High-LQ sectors
+            drive a metro&apos;s employment, population growth, and income. But
             concentration in a single export sector creates risk &mdash; if that sector
-            contracts, the multiplier effect works in reverse. Understanding a metro&apos;s
-            economic base is essential diligence before underwriting any market.
+            contracts, the multiplier effect works in reverse. A metro&apos;s economic
+            base is the starting point for anyone sizing up a regional economy &mdash;
+            siting a business, evaluating a market, shaping policy, or deciding where to
+            build a career.
           </p>
         </div>
       </section>

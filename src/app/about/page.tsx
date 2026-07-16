@@ -103,19 +103,21 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Real Estate Applications */}
+      {/* Applications */}
       <section className="space-y-4">
-        <h2 className="text-xl font-bold text-gray-100">Why It Matters for Real Estate</h2>
+        <h2 className="text-xl font-bold text-gray-100">What It Tells You</h2>
         <div className="space-y-4 text-gray-400 leading-relaxed">
           <p>
-            For real estate investors, understanding a metro&apos;s economic base answers
-            critical questions:
+            A metro&apos;s economic base answers questions that matter to anyone
+            weighing up a region &mdash; whether you are siting or expanding a business,
+            evaluating a market, shaping local policy, doing research, or working out
+            where to build a career:
           </p>
           <ul className="list-disc list-inside space-y-2 text-gray-400">
             <li>
               <strong className="text-gray-200">Demand drivers:</strong> What industries are
               bringing people (and money) into the region? Strong export sectors create
-              employment growth, which drives population growth, which drives housing demand.
+              employment growth, which drives population growth and local spending.
             </li>
             <li>
               <strong className="text-gray-200">Concentration risk:</strong> Is the metro
@@ -129,7 +131,7 @@ export default function AboutPage() {
             </li>
             <li>
               <strong className="text-gray-200">Market screening:</strong> Use LQ data to
-              identify metros that match specific investment criteria &mdash; e.g., growing
+              identify metros matching whatever criteria you care about &mdash; e.g., growing
               healthcare markets, tech hubs, or diversified economies.
             </li>
           </ul>
