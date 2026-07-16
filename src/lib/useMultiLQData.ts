@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchNationalData, fetchMetroData, computeLQ, fetchTrendData, type LQResult, type EmploymentData, type TrendResult } from "./blsApi";
 import { loadScreeningData, loadMetroDetail } from "./screeningData";
-import { classifyLQ, excessEmployment } from "./lqMetrics";
+import { classifyLQ } from "./lqMetrics";
 
 export interface MetroLQData {
   stateCode: string;
@@ -113,12 +113,8 @@ export function useMultiLQData(
                   // files built before the 1.0 threshold change carry a stale
                   // `classification` computed at 1.2.
                   classification: classifyLQ(s.lq),
-                  excessEmployment: excessEmployment(
-                    s.employment,
-                    staticMetro.totalEmployment,
-                    s.nationalPctOfTotal,
-                    s.lq
-                  ),
+                  // Read, not recomputed — see ScreeningSector.excessEmployment.
+                  excessEmployment: s.excessEmployment,
                   hasData: true,
                 })),
                 metroData: metroDataMap,

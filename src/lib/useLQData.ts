@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchNationalData, fetchMetroData, computeLQ, type LQResult, type EmploymentData } from "./blsApi";
 import { loadScreeningData, type ScreeningMetro } from "./screeningData";
-import { classifyLQ, excessEmployment } from "./lqMetrics";
+import { classifyLQ } from "./lqMetrics";
 
 interface UseLQDataResult {
   lqResults: LQResult[];
@@ -27,12 +27,9 @@ function screeningToLQResults(metro: ScreeningMetro): LQResult[] {
     // before the 1.0 threshold change carry a stale `classification` computed
     // at 1.2; deriving here keeps the app correct against any data vintage.
     classification: classifyLQ(s.lq),
-    excessEmployment: excessEmployment(
-      s.employment,
-      metro.totalEmployment,
-      s.nationalPctOfTotal,
-      s.lq
-    ),
+    // Read, not recomputed: the pipeline derives this from unrounded shares,
+    // and nationalPctOfTotal is stored rounded to one decimal.
+    excessEmployment: s.excessEmployment,
     hasData: true,
   }));
 }

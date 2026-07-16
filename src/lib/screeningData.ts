@@ -7,6 +7,14 @@ export interface ScreeningSector {
   nationalPctOfTotal?: number;
   lq: number;
   classification: "Export" | "Local" | "Import";
+  /**
+   * Jobs beyond what the metro needs to serve itself, in thousands. Negative =
+   * net import. Read this; do not recompute it from nationalPctOfTotal — that
+   * share is stored rounded to one decimal, and recomputing off it drifted the
+   * export base by up to ~800 jobs against the pipeline's own exportBaseJobs.
+   * The pipeline computes this from unrounded shares and is the only source.
+   */
+  excessEmployment: number;
 }
 
 export type AreaType = "msa" | "division";
