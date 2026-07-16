@@ -147,21 +147,22 @@ export default function Home() {
 
           {/* Worked example */}
           <div className="bg-[#1a1d27] border border-gray-800 rounded-lg p-5 space-y-3">
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Worked Example &mdash; Washington, DC</div>
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Worked Example &mdash; Des Moines, IA</div>
             <div className="text-sm text-gray-300 space-y-2">
               <p>
-                If <span className="font-mono text-blue-400">28%</span> of DC-area jobs are in
-                Government, but only <span className="font-mono text-gray-200">15%</span> of
-                U.S. jobs are in Government:
+                <span className="font-mono text-blue-400">13.5%</span> of Des Moines jobs are
+                in Financial Activities, against <span className="font-mono text-gray-200">5.7%</span>{" "}
+                of U.S. jobs:
               </p>
               <div className="font-mono text-gray-200 pl-4">
-                LQ = 28% / 15% = <span className="text-blue-400 font-bold">1.87</span>
+                LQ = 13.5% / 5.7% &asymp; <span className="text-blue-400 font-bold">2.36</span>
               </div>
               <p>
-                An LQ of 1.87 means the DC area is nearly twice as concentrated in Government
-                employment as the nation. Government is a strong export sector &mdash; it
-                brings federal spending into the region &mdash; but also a concentration risk
-                if federal budgets contract.
+                An LQ of 2.36 means Des Moines is more than twice as concentrated in Financial
+                Activities as the nation &mdash; the insurance and financial services base the
+                metro is known for. That concentration is a strong export sector, bringing
+                outside money in, but it is also the metro&apos;s single largest dependency: if
+                it contracts, the multiplier effect runs in reverse.
               </p>
             </div>
           </div>
@@ -178,17 +179,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Visual preview — link to DC */}
+      {/* Visual preview — link to the worked example above */}
       <section className="max-w-3xl mx-auto">
         <a
-          href="/metro/washington-dc-md"
+          href="/metro/des-moines-west-des-moines-ia"
           className="block bg-[#1a1d27] border border-gray-800 rounded-lg p-6 hover:border-blue-800 transition-colors group"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-xs uppercase tracking-wider text-gray-500">Example Analysis</div>
               <div className="text-lg font-semibold text-gray-100 mt-1 group-hover:text-blue-400 transition-colors">
-                Washington, DC-MD
+                Des Moines-West Des Moines, IA
               </div>
             </div>
             <span className="text-gray-600 group-hover:text-blue-400 transition-colors">&rarr;</span>
@@ -196,11 +197,11 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <div className="text-gray-500">Top Export</div>
-              <div className="text-blue-400 font-semibold">Government</div>
+              <div className="text-blue-400 font-semibold">Financial Activities</div>
             </div>
             <div>
               <div className="text-gray-500">Top LQ</div>
-              <div className="font-mono font-bold text-gray-100">~1.87</div>
+              <div className="font-mono font-bold text-gray-100">2.36</div>
             </div>
             <div>
               <div className="text-gray-500">Export Sectors</div>
