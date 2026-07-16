@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type ScreeningMetro } from "@/lib/screeningData";
-import { METROS } from "@/data/metros";
 
 type SortKey =
   | "name"
@@ -46,11 +45,7 @@ export default function ScreeningTable({ metros }: ScreeningTableProps) {
   }
 
   function handleRowClick(metro: ScreeningMetro) {
-    // Match by stateCode + areaCode since slugs differ between BLS names and our predefined list
-    const known = METROS.find(
-      (m) => m.stateCode === metro.stateCode && m.areaCode === metro.areaCode
-    );
-    router.push(`/metro/${known?.slug ?? metro.slug}`);
+    router.push(`/metro/${metro.slug}`);
   }
 
   function SortIcon({ column }: { column: SortKey }) {

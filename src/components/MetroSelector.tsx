@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { METROS, type Metro } from "@/data/metros";
+import { type Metro } from "@/data/metros";
 
 interface MetroSelectorProps {
   onSelect: (metro: Metro) => void;
   selected?: Metro | null;
-  metros?: Metro[];
+  /** Required: pass the full list from loadScreeningData(). There is no
+   *  built-in fallback — a default list is how the search silently shrank to
+   *  ~33 metros and hid Kansas City. */
+  metros: Metro[];
 }
 
-export default function MetroSelector({ onSelect, selected, metros: metroList }: MetroSelectorProps) {
+export default function MetroSelector({ onSelect, selected, metros: source }: MetroSelectorProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const source = metroList ?? METROS;
 
   const filtered = useMemo(() => {
     if (!query) return source;

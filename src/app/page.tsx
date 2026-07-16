@@ -1,32 +1,68 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import MetroSelector from "@/components/MetroSelector";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import ComparePresets from "@/components/ComparePresets";
 import EmailSignup from "@/components/EmailSignup";
 import { useFavorites } from "@/lib/useFavorites";
-import { getMetroBySlug, type Metro } from "@/data/metros";
+import { loadScreeningData } from "@/lib/screeningData";
+import { type Metro } from "@/data/metros";
 
+// Canonical slugs, matching public/data/lq_all_metros.json. These were legacy
+// curated slugs; "new-york-ny" in particular resolved to Nassau County-Suffolk
+// County data under the New York name.
 const FEATURED = [
-  { label: "Washington DC", slug: "washington-dc-md" },
-  { label: "New York", slug: "new-york-ny" },
-  { label: "Houston", slug: "houston-tx" },
-  { label: "Los Angeles", slug: "los-angeles-ca" },
-  { label: "Chicago", slug: "chicago-il" },
+  { label: "Washington DC", slug: "washington-dc-md-metropolitan-division" },
+  { label: "New York", slug: "new-york-newark-jersey-city-ny-nj" },
+  { label: "Houston", slug: "houston-pasadena-the-woodlands-tx" },
+  { label: "Los Angeles", slug: "los-angeles-long-beach-anaheim-ca" },
+  { label: "Chicago", slug: "chicago-naperville-elgin-il-in" },
 ];
 
 export default function Home() {
   const router = useRouter();
   const { favorites } = useFavorites();
 
+  // All 431 metros, so search matches the "400+" promise above. The retired
+  // METROS constant listed only ~33, which silently hid most of the country
+  // (e.g. Kansas City never appeared).
+  const [allMetros, setAllMetros] = useState<Metro[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadScreeningData()
+      .then((d) => {
+        if (cancelled) return;
+        setAllMetros(
+          d.metros.map((m) => ({
+            stateCode: m.stateCode,
+            areaCode: m.areaCode,
+            name: m.name,
+            slug: m.slug,
+          }))
+        );
+      })
+      .catch(() => {
+        /* selector stays empty; the featured chips below still work */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function handleSelect(metro: Metro) {
     router.push(`/metro/${metro.slug}`);
   }
 
-  const favoriteMetros = favorites
-    .map((slug) => getMetroBySlug(slug))
-    .filter((m): m is Metro => m !== undefined);
+  const favoriteMetros = useMemo(
+    () =>
+      favorites
+        .map((slug) => allMetros.find((m) => m.slug === slug))
+        .filter((m): m is Metro => m !== undefined),
+    [favorites, allMetros]
+  );
 
   return (
     <div className="space-y-16">
@@ -41,7 +77,7 @@ export default function Home() {
           &mdash;&nbsp;all powered by Bureau of Labor Statistics employment data.
         </p>
         <div className="flex justify-center">
-          <MetroSelector onSelect={handleSelect} />
+          <MetroSelector onSelect={handleSelect} metros={allMetros} />
         </div>
 
         {/* Favorites or featured chips */}

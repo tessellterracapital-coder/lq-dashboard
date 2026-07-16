@@ -212,18 +212,36 @@ Series ID: SMU11477649000000001
 
 Here are metros relevant to Clear Bay's portfolio and pipeline, plus major US metros. The full list of ~390 MSAs and ~37 divisions is available at https://www.bls.gov/eag/home.htm. A comprehensive area code list can be scraped from the BLS EAG page or downloaded from https://download.bls.gov/pub/time.series/sm/ (the `sm.area` file contains all area codes).
 
+> **This table is reference documentation, not a data source.** The app resolves
+> every metro from `public/data/lq_all_metros.json`, built from BLS CES data by
+> `scripts/build-screening-data.mjs`. Do not hand-maintain a parallel list in
+> application code — an earlier `METROS` constant drifted from this table and
+> silently served the wrong metro's data.
+>
+> Three area codes here were wrong, each a copy-paste of a neighbouring row that
+> resolved to a real but *different* metro, so nothing errored:
+>
+> | Metro | Was | Actually is | Correct |
+> |---|---|---|---|
+> | Washington (Full MSA) | 12580 | Baltimore-Columbia-Towson | 47900 |
+> | Phoenix-Mesa-Chandler | 33100 | Miami-Fort Lauderdale | 38060 |
+> | New York-Newark-Jersey City | 35004 | Nassau County-Suffolk County | 35620 |
+>
+> Validate any change to this table against `lq_all_metros.json` (match on
+> `stateCode` + `areaCode`) before relying on it.
+
 | State Code | Area Code | Metro Name |
 |-----------|-----------|------------|
 | 11 | 47764 | Washington, DC-MD (Division) |
 | 51 | 11694 | Arlington-Alexandria-Reston, VA-WV (NoVA Division) |
 | 24 | 23224 | Frederick-Gaithersburg-Bethesda, MD (Division) |
-| 11 | 12580 | Washington-Arlington-Alexandria, DC-VA-MD-WV (Full MSA) |
+| 11 | 47900 | Washington-Arlington-Alexandria, DC-VA-MD-WV (Full MSA) |
 | 51 | 47260 | Virginia Beach-Norfolk-Newport News, VA-NC (Hampton Roads) |
 | 13 | 12060 | Atlanta-Sandy Springs-Alpharetta, GA |
 | 37 | 16740 | Charlotte-Concord-Gastonia, NC-SC |
 | 19 | 19780 | Des Moines-West Des Moines, IA |
 | 55 | 31540 | Madison, WI |
-| 36 | 35004 | New York-Newark-Jersey City, NY-NJ-PA |
+| 36 | 35620 | New York-Newark-Jersey City, NY-NJ |
 | 06 | 31080 | Los Angeles-Long Beach-Anaheim, CA |
 | 17 | 16980 | Chicago-Naperville-Elgin, IL-IN-WI |
 | 48 | 26420 | Houston-The Woodlands-Sugar Land, TX |
@@ -243,7 +261,7 @@ Here are metros relevant to Clear Bay's portfolio and pipeline, plus major US me
 | 08 | 19740 | Denver-Aurora-Lakewood, CO |
 | 41 | 38900 | Portland-Vancouver-Hillsboro, OR-WA |
 | 48 | 12420 | Austin-Round Rock-Georgetown, TX |
-| 04 | 33100 | Phoenix-Mesa-Chandler, AZ |
+| 04 | 38060 | Phoenix-Mesa-Chandler, AZ |
 | 26 | 19820 | Detroit-Warren-Dearborn, MI |
 | 12 | 36740 | Orlando-Kissimmee-Sanford, FL |
 | 12 | 45300 | Tampa-St. Petersburg-Clearwater, FL |

@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { getMetroBySlug } from "@/data/metros";
 import { useLQData } from "@/lib/useLQData";
 import { useTrendData } from "@/lib/useTrendData";
 import { useFavorites } from "@/lib/useFavorites";
@@ -44,20 +43,28 @@ export default function MetroPageClient() {
   const router = useRouter();
   const slug = params.slug as string;
 
-  // Try predefined list first, then fall back to screening JSON
-  const predefined = useMemo(() => getMetroBySlug(slug), [slug]);
-  const [fallbackMetro, setFallbackMetro] = useState<MetroInfo | null>(null);
-  const [fallbackLoading, setFallbackLoading] = useState(!predefined);
+  // Resolved from the BLS-built dataset — the single source of metro identity.
+  // The same fetch feeds this page's selector, so it searches all 431 metros.
+  const [allMetros, setAllMetros] = useState<Metro[]>([]);
+  const [metro, setMetro] = useState<MetroInfo | null>(null);
+  const [fallbackLoading, setFallbackLoading] = useState(true);
 
   useEffect(() => {
-    if (predefined) return;
     let cancelled = false;
     loadScreeningData()
       .then((data) => {
         if (cancelled) return;
+        setAllMetros(
+          data.metros.map((m) => ({
+            stateCode: m.stateCode,
+            areaCode: m.areaCode,
+            name: m.name,
+            slug: m.slug,
+          }))
+        );
         const match = data.metros.find((m) => m.slug === slug);
         if (match) {
-          setFallbackMetro({
+          setMetro({
             stateCode: match.stateCode,
             areaCode: match.areaCode,
             name: match.name,
@@ -68,9 +75,7 @@ export default function MetroPageClient() {
       .catch(() => {})
       .finally(() => { if (!cancelled) setFallbackLoading(false); });
     return () => { cancelled = true; };
-  }, [predefined, slug]);
-
-  const metro: MetroInfo | null = predefined ?? fallbackMetro;
+  }, [slug]);
 
   const { lqResults, metroData, loading, error, dataYear, dataPeriod } = useLQData(
     metro?.stateCode ?? null,
@@ -168,7 +173,7 @@ export default function MetroPageClient() {
             )}
           </div>
         </div>
-        <MetroSelector onSelect={handleSelect} selected={metro} />
+        <MetroSelector onSelect={handleSelect} selected={metro} metros={allMetros} />
       </div>
 
       {/* Leaderboard ad — desktop only, above chart area */}

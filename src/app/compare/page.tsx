@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { METROS, type Metro, getMetroBySlug } from "@/data/metros";
+import { type Metro } from "@/data/metros";
+import { canonicalSlug } from "@/data/legacyMetroSlugs";
+import { loadScreeningData } from "@/lib/screeningData";
 import { useMultiLQData } from "@/lib/useMultiLQData";
 import MetroSelector from "@/components/MetroSelector";
 import CompareChart from "@/components/CompareChart";
@@ -31,11 +33,49 @@ function ComparePageInner() {
     return slugs;
   }, [searchParams]);
 
-  const [selectedMetros, setSelectedMetros] = useState<Metro[]>(() =>
-    initialSlugs
-      .map((s) => getMetroBySlug(s))
-      .filter((m): m is Metro => m !== undefined)
-  );
+  // All 431 metros. The retired METROS constant listed ~33, so both the
+  // selector and ?m1=<slug> deep links silently ignored anything outside it
+  // (e.g. Kansas City resolved to nothing at all).
+  const [allMetros, setAllMetros] = useState<Metro[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadScreeningData()
+      .then((d) => {
+        if (cancelled) return;
+        setAllMetros(
+          d.metros.map((m) => ({
+            stateCode: m.stateCode,
+            areaCode: m.areaCode,
+            name: m.name,
+            slug: m.slug,
+          }))
+        );
+      })
+      .catch(() => {
+        /* selector stays empty rather than showing a stale subset */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [selectedMetros, setSelectedMetros] = useState<Metro[]>([]);
+
+  // Deep links resolve once the full list lands, unless the user has already
+  // changed the selection themselves. Legacy slugs (?m1=atlanta-ga) still work.
+  const userTouched = useRef(false);
+
+  useEffect(() => {
+    if (userTouched.current || allMetros.length === 0 || initialSlugs.length === 0) return;
+    const resolved = initialSlugs
+      .map((s) => {
+        const slug = canonicalSlug(s) ?? s;
+        return allMetros.find((m) => m.slug === slug);
+      })
+      .filter((m): m is Metro => m !== undefined);
+    setSelectedMetros((prev) => (resolved.length > prev.length ? resolved : prev));
+  }, [allMetros, initialSlugs]);
 
   const selections = useMemo(
     () =>
@@ -62,18 +102,20 @@ function ComparePageInner() {
   function handleAdd(metro: Metro) {
     if (selectedMetros.find((m) => m.slug === metro.slug)) return;
     if (selectedMetros.length >= MAX_METROS) return;
+    userTouched.current = true;
     const next = [...selectedMetros, metro];
     setSelectedMetros(next);
     updateUrl(next);
   }
 
   function handleRemove(slug: string) {
+    userTouched.current = true;
     const next = selectedMetros.filter((m) => m.slug !== slug);
     setSelectedMetros(next);
     updateUrl(next);
   }
 
-  const availableMetros = METROS.filter(
+  const availableMetros = allMetros.filter(
     (m) => !selectedMetros.find((s) => s.slug === m.slug)
   );
 

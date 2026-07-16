@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import fs from "fs";
 import path from "path";
-import { METROS } from "@/data/metros";
+import { canonicalSlug } from "@/data/legacyMetroSlugs";
 import MetroPageClient from "./MetroPageClient";
 
 interface MetroPageProps {
@@ -31,11 +32,8 @@ function getAllScreeningMetros(): ScreeningMetro[] {
   }
 }
 
+/** Resolve from the BLS-built dataset — the single source of metro identity. */
 function findMetro(slug: string): ScreeningMetro | undefined {
-  // Check curated list first (preserves hand-crafted slugs like "arlington-nova")
-  const curated = METROS.find((m) => m.slug === slug);
-  if (curated) return curated as ScreeningMetro;
-  // Fall back to the full screening dataset
   return getAllScreeningMetros().find((m) => m.slug === slug);
 }
 
@@ -61,15 +59,19 @@ export async function generateMetadata({ params }: MetroPageProps): Promise<Meta
   };
 }
 
-/** Generate static pages for all 431 metros from the screening JSON, plus curated slugs. */
+/** Generate static pages for every metro in the screening JSON. */
 export function generateStaticParams() {
-  const screeningSlugs = new Set(getAllScreeningMetros().map((m) => m.slug));
-  // Merge curated slugs so hand-crafted slugs (e.g. "arlington-nova") are always included
-  METROS.forEach((m) => screeningSlugs.add(m.slug));
-  return Array.from(screeningSlugs).map((slug) => ({ slug }));
+  return getAllScreeningMetros().map((m) => ({ slug: m.slug }));
 }
 
 export default function MetroPage({ params }: MetroPageProps) {
+  // Legacy curated slugs (e.g. /metro/atlanta-ga) were published in the sitemap
+  // and linked from the screening table, so they redirect to the canonical slug
+  // rather than 404. Permanent (308) so search engines consolidate ranking onto
+  // the canonical URL instead of treating both as live duplicates.
+  const canonical = canonicalSlug(params.slug);
+  if (canonical) permanentRedirect(`/metro/${canonical}`);
+
   const metro = findMetro(params.slug);
 
   // JSON-LD structured data for SEO

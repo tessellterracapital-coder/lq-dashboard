@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { loadScreeningData, type ScreeningMetro } from "@/lib/screeningData";
-import { METROS } from "@/data/metros";
 import { type LQResult } from "@/lib/blsApi";
 import { SUPERSECTORS } from "@/data/supersectors";
 
@@ -29,7 +28,7 @@ function buildLQVector(lqMap: Record<string, number>): number[] {
 }
 
 export default function SimilarMetros({ currentSlug, currentStateCode, currentAreaCode, results }: SimilarMetrosProps) {
-  const [similar, setSimilar] = useState<Array<{ metro: ScreeningMetro; score: number; knownSlug: string | null }>>([]);
+  const [similar, setSimilar] = useState<Array<{ metro: ScreeningMetro; score: number }>>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -52,10 +51,7 @@ export default function SimilarMetros({ currentSlug, currentStateCode, currentAr
           .map((m) => {
             const vec = buildLQVector(m.lq);
             const score = cosineSimilarity(currentVec, vec);
-            const known = METROS.find(
-              (km) => km.stateCode === m.stateCode && km.areaCode === m.areaCode
-            );
-            return { metro: m, score, knownSlug: known?.slug ?? null };
+            return { metro: m, score };
           })
           .sort((a, b) => b.score - a.score)
           .slice(0, 5);
@@ -79,10 +75,10 @@ export default function SimilarMetros({ currentSlug, currentStateCode, currentAr
     <div className="bg-[#1a1d27] rounded-lg p-5 border border-gray-800">
       <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">Similar Metros</div>
       <div className="space-y-2">
-        {similar.map(({ metro, score, knownSlug }) => (
+        {similar.map(({ metro, score }) => (
           <a
             key={`${metro.stateCode}-${metro.areaCode}`}
-            href={`/metro/${knownSlug ?? metro.slug}`}
+            href={`/metro/${metro.slug}`}
             className="flex items-center justify-between py-2 px-3 rounded hover:bg-[#252836] transition-colors group"
           >
             <div>
