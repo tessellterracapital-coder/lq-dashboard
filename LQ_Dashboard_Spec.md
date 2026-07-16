@@ -81,6 +81,56 @@ Excess employment is the count of jobs beyond what the metro needs to serve itse
 
 A metro's **export base** = the sum of *positive* excess across sectors. This is a conservative floor: cross-hauling within broad supersectors (shipping out truck parts while importing electronics — both "Manufacturing") nets out and is invisible, so the true base is larger.
 
+**Below 1.0 is "Under-represented", not "Import" (decided; do not reintroduce "Import"):**
+
+Economic base theory calls a below-1.0 sector an import. That reading assumes the
+activity can cross a boundary, and much of it cannot. Los Angeles has a
+construction LQ of 0.71 and −104,900 excess, but LA does not import buildings from
+Ohio — construction happens where the building goes. The same holds for
+healthcare, government and leisure. What the number actually supports is that the
+sector is smaller than the national mix, which is true whether or not anything is
+traded.
+
+`Export` is kept: a surplus above local need really is sold outward, and that
+reading holds wherever the activity is tradable. `Local` became `Balanced` at
+exactly 1.0, which is what this document already called it above.
+
+The internal `Classification` values were renamed rather than mapped at display
+time — the value *is* the display string (the data table and both CSVs write it
+verbatim), so a mapping would have created two vocabularies for one concept and
+left the code still asserting trade it does not mean. `classifyLQ` derives the
+label from the LQ at read time, so files of any vintage cannot leak the old
+wording.
+
+**Negative excess is not a bug — do not "fix" it:**
+
+Excess sums to zero across a metro's sectors by construction:
+
+```
+Σ excess = Σ (local_i − total × national_share_i)
+         = total − total × Σ national_share_i
+         = total − total × 1
+         = 0
+```
+
+So a metro's export base *equals* its combined shortfall everywhere else. Los
+Angeles is +500,400 against −500,500 — net −100 jobs, or −0.00% of employment.
+They are the same fact viewed twice, not two findings. Anyone tempted to clamp
+the negatives at zero would be deleting one half of an identity.
+
+Two caveats, both real:
+
+- **Rounding.** Stored national shares are one decimal and sum to ~99.9%, not
+  exactly 100%, so the residual is near zero rather than zero. Across the 353
+  metros where all ten supersectors are published, the largest |net| is 1.02% of
+  total employment.
+- **Sector completeness.** The identity depends on Σ national_share = 1, which
+  only holds when every supersector is present. BLS does not publish all ten for
+  smaller metros — Hinesville, GA reports Government alone, 7.8K of 21.8K jobs —
+  and the employment outside the published sectors has no counterpart to cancel
+  against. For the 78 metros reporting fewer than ten, |net| runs as high as 21%.
+  That is the data being incomplete, not the arithmetic being wrong.
+
 Implementation lives in `src/lib/lqMetrics.ts` (single source of truth) and is mirrored in `scripts/build-screening-data.mjs`. Classification is derived from the LQ at read time in `useLQData`, so data files built under the old 1.2 threshold cannot leak a stale classification into the UI.
 
 **Month-matching — every LQ is computed within a single month (decided; do not reintroduce "latest available"):**
@@ -338,9 +388,9 @@ Download the BLS area codes file from `https://download.bls.gov/pub/time.series/
 2. Fetches the selected metro's employment data (same 11 series)
 3. Computes LQ for each supersector
 4. Displays:
-   - **Horizontal bar chart** — supersectors sorted by LQ, with a reference line at LQ = 1.0. Bars to the right of 1.0 are export sectors (color them green/blue), bars to the left are import sectors (gray/red).
+   - **Horizontal bar chart** — supersectors sorted by LQ, with a reference line at LQ = 1.0. Bars to the right of 1.0 are export sectors (color them green/blue), bars to the left are under-represented (gray/red).
    - **Summary cards** — Top export sector (name + LQ), number of export sectors (LQ > 1.0), export base (total excess employment in jobs, and as % of total), top sector concentration (% of total employment for the largest sector, flag if > 25%)
-   - **Data table** — Industry, Employment (thousands), % of Total, LQ, Classification (Export/Local/Import)
+   - **Data table** — Industry, Employment (thousands), % of Total, LQ, Classification (Export/Balanced/Under-represented)
 
 **Caching:** Cache national data in memory (it's the same for every metro). Cache metro results in a Map so switching back to a previously viewed metro is instant.
 
@@ -479,7 +529,7 @@ Dark theme, data-dense, professional. Think Bloomberg terminal meets modern dash
 
 - **Dark background** (`#0f1117`) with card surfaces (`#1a1d27`)
 - **Monospace font** (JetBrains Mono) for data, clean sans-serif for labels
-- **Color coding:** Blue for export sectors (LQ > 1.0), gray at exactly 1.0, red for import sectors (LQ < 1.0). The color break must match the 1.0 reference line — an earlier build drew the line at 1.0 but broke color at 1.2, rendering above-average sectors in "local" gray to the right of the line.
+- **Color coding:** Blue for export sectors (LQ > 1.0), gray at exactly 1.0, red for under-represented sectors (LQ < 1.0). The color break must match the 1.0 reference line — an earlier build drew the line at 1.0 but broke color at 1.2, rendering above-average sectors in "balanced" gray to the right of the line.
 - **Gold reference line** at LQ = 1.0 on all bar charts
 - **Minimal chrome** — the data is the interface
 - **Responsive** — must work well on mobile (significant portion of traffic will be mobile)
