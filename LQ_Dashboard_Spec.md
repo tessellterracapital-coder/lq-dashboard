@@ -83,6 +83,50 @@ A metro's **export base** = the sum of *positive* excess across sectors. This is
 
 Implementation lives in `src/lib/lqMetrics.ts` (single source of truth) and is mirrored in `scripts/build-screening-data.mjs`. Classification is derived from the LQ at read time in `useLQData`, so data files built under the old 1.2 threshold cannot leak a stale classification into the UI.
 
+**Month-matching — every LQ is computed within a single month (decided; do not reintroduce "latest available"):**
+
+An LQ compares a local share to a national share. Both must be drawn from the
+*same month*. This applies to the headline LQ exactly as it does to the trend
+line, and it is not a freshness trade-off:
+
+- National CES publishes ahead of metro CES — typically by one month.
+- Each metro row is labelled with the metro's own month (`dataPeriod`). Taking
+  "current" from each side's latest month therefore divided, say, a May metro
+  share by a June national share, and labelled the result May. The row already
+  claimed to be May; there was never a June LQ to give up.
+- This is what made the headline LQ disagree with the last point of its own
+  trend line — Las Vegas Leisure & Hospitality read 2.32 in the table and 2.37
+  in the trend, and 358 of 600 sampled sector rows disagreed.
+
+The build resolves one **as-of month** per metro — its most recent month that
+also has national data — and reads *everything* at it: metro sectors, metro
+total, national sectors, national total. A sector with no data at the as-of
+month is omitted, never filled from an earlier month; a stale numerator over a
+current total is not an LQ.
+
+Do not select "the latest value per series" on either side. Independently-latest
+values let one late-reporting sector divide its employment by a different
+month's total *within a single row*, which no amount of matching the national
+side would catch.
+
+`nationalDataPeriod` in the screening file reports the as-of month actually
+used, not the newest national month downloaded. The newer national months are
+deliberately unused until metro CES catches up.
+
+**Excess employment has exactly one source (decided):**
+
+`scripts/build-screening-data.mjs` computes per-sector `excessEmployment` from
+**unrounded** shares and stores it. The app reads that value. It must not
+recompute it from `nationalPctOfTotal`, which is stored rounded to one decimal
+(e.g. 11.0% for a true 11.045%): recomputing off the rounded share drifted the
+export base by up to ~800 jobs against the pipeline's own `exportBaseJobs`, so
+the same quantity read differently in the table, the CSV, and the metro page.
+
+The invariant to preserve: **summing positive per-sector `excessEmployment`
+reproduces `exportBaseJobs` exactly, for every metro.** The live BLS API path in
+`blsApi.ts` still calls `excessEmployment()` because it has no precomputed value
+to read — that is the only caller that should.
+
 **Why it matters:**
 - High-LQ sectors drive employment demand → population growth → local spending (and, downstream, housing demand)
 - Concentration risk: if a city's dominant export sector contracts, the multiplier effect drags everything down (e.g., DC and government cuts, Detroit and auto manufacturing)
