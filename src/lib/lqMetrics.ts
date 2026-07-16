@@ -202,3 +202,163 @@ export function paddedDomain(
     round(Math.ceil((hi + pad) / step) * step),
   ];
 }
+
+// ---------------------------------------------------------------------------
+// Bubble label placement
+// ---------------------------------------------------------------------------
+
+/** A bubble, in pixel space. */
+export interface BubbleCircle {
+  cx: number;
+  cy: number;
+  r: number;
+}
+
+export interface LabelTarget extends BubbleCircle {
+  text: string;
+  /** Passed through to the placed label, for per-series colouring. */
+  fill?: string;
+}
+
+export interface PlacedLabel {
+  x: number;
+  y: number;
+  text: string;
+  fill?: string;
+  /** SVG text-anchor: labels placed left of their bubble are right-aligned. */
+  anchor: "start" | "end";
+  /** Leader line back to the bubble edge, when the label had to be pushed away. */
+  line: { x1: number; y1: number; x2: number; y2: number } | null;
+}
+
+interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+function overlaps(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+/** Rough text width. SVG has no measurement API outside the DOM, and ~0.55em
+ *  per character is close enough for the 10px sans labels used here. */
+function textWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * 0.55;
+}
+
+/**
+ * Place bubble labels so they collide with neither the bubbles nor each other.
+ *
+ * Every label used to sit at a fixed offset right of its bubble centre, so any
+ * two bubbles at a similar height overlapped, and bubbles drawn later painted
+ * over labels drawn earlier.
+ *
+ * Each label is tried at a ring of candidate offsets (right, left, then
+ * diagonals and above/below at growing distance). The first candidate that hits
+ * no bubble and no already-placed label wins. Labels are placed
+ * largest-bubble-first so the visually dominant sectors keep the preferred
+ * position, and anything pushed beyond its bubble edge gets a leader line. A
+ * label with nowhere to go is dropped rather than drawn over something — the
+ * tooltip still names it.
+ *
+ * `allBubbles` is every bubble in the chart, which is not always the same set
+ * as `targets`: the compare chart labels only export sectors but must still
+ * route around the rest.
+ *
+ * Callers render the returned labels in a single layer above every bubble.
+ */
+export function placeBubbleLabels(
+  targets: LabelTarget[],
+  allBubbles: BubbleCircle[],
+  bounds: { left: number; top: number; width: number; height: number },
+  fontSize = 10
+): PlacedLabel[] {
+  const GAP = 5;
+  const lineHeight = fontSize + 2;
+
+  const obstacles: Rect[] = allBubbles.map((b) => ({
+    x: b.cx - b.r,
+    y: b.cy - b.r,
+    w: b.r * 2,
+    h: b.r * 2,
+  }));
+
+  const placed: PlacedLabel[] = [];
+  const placedRects: Rect[] = [];
+
+  // Largest bubbles first: they dominate the chart, so they get first pick.
+  const order = targets
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => b.t.r - a.t.r);
+
+  for (const { t } of order) {
+    const w = textWidth(t.text, fontSize);
+    const h = lineHeight;
+
+    // Candidates, in preference order: right and left at the bubble edge, then
+    // pushed progressively further out, then above/below.
+    const candidates: Array<{ x: number; y: number; anchor: "start" | "end" }> = [];
+    for (const dist of [t.r + GAP, t.r + GAP + 12, t.r + GAP + 26]) {
+      candidates.push({ x: t.cx + dist, y: t.cy, anchor: "start" });
+      candidates.push({ x: t.cx - dist, y: t.cy, anchor: "end" });
+    }
+    for (const dy of [-1, 1]) {
+      for (const dist of [t.r + GAP, t.r + GAP + 14]) {
+        candidates.push({ x: t.cx + dist, y: t.cy + dy * dist * 0.7, anchor: "start" });
+        candidates.push({ x: t.cx - dist, y: t.cy + dy * dist * 0.7, anchor: "end" });
+      }
+      candidates.push({ x: t.cx, y: t.cy + dy * (t.r + GAP + lineHeight), anchor: "start" });
+    }
+
+    let chosen: { x: number; y: number; anchor: "start" | "end" } | null = null;
+
+    for (const c of candidates) {
+      const rect: Rect =
+        c.anchor === "start"
+          ? { x: c.x, y: c.y - h / 2, w, h }
+          : { x: c.x - w, y: c.y - h / 2, w, h };
+
+      // Must stay inside the plot area.
+      if (
+        rect.x < bounds.left ||
+        rect.x + rect.w > bounds.left + bounds.width ||
+        rect.y < bounds.top ||
+        rect.y + rect.h > bounds.top + bounds.height
+      ) {
+        continue;
+      }
+      if (obstacles.some((o) => overlaps(rect, o))) continue;
+      if (placedRects.some((p) => overlaps(rect, p))) continue;
+
+      chosen = c;
+      placedRects.push(rect);
+      break;
+    }
+
+    if (!chosen) continue; // nowhere clear — drop it rather than overlap
+
+    // Leader line only when the label sits clear of the bubble edge.
+    const edgeX = chosen.anchor === "start" ? t.cx + t.r : t.cx - t.r;
+    const needsLine = Math.abs(chosen.y - t.cy) > 2 || Math.abs(chosen.x - edgeX) > GAP + 2;
+
+    placed.push({
+      x: chosen.x,
+      y: chosen.y,
+      text: t.text,
+      fill: t.fill,
+      anchor: chosen.anchor,
+      line: needsLine
+        ? {
+            x1: edgeX,
+            y1: t.cy,
+            x2: chosen.anchor === "start" ? chosen.x - 2 : chosen.x + 2,
+            y2: chosen.y,
+          }
+        : null,
+    });
+  }
+
+  return placed;
+}

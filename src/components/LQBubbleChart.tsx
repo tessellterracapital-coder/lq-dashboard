@@ -15,6 +15,7 @@ import {
 import { type LQResult } from "@/lib/blsApi";
 import { type TrendResult } from "@/lib/blsApi";
 import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
+import BubbleLabelLayer from "./BubbleLabelLayer";
 
 interface LQBubbleChartProps {
   results: LQResult[];
@@ -109,33 +110,36 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
     return (
       <g>
         <circle cx={cx} cy={cy} r={r} fill={color} fillOpacity={0.7} stroke={color} strokeWidth={1} />
-        {/* LQ value */}
-        <text
-          x={cx}
-          y={isLarge ? cy : cy - r - 4}
-          textAnchor="middle"
-          dominantBaseline={isLarge ? "central" : "auto"}
-          fill={isLarge ? "#fff" : "#d1d5db"}
-          fontSize={isLarge ? 11 : 10}
-          fontFamily="monospace"
-          fontWeight="bold"
-        >
-          {lqText}
-        </text>
-        {/* Sector label to the right */}
-        <text
-          x={cx + r + 5}
-          y={cy}
-          textAnchor="start"
-          dominantBaseline="central"
-          fill="#9ca3af"
-          fontSize={10}
-        >
-          {d.shortLabel}
-        </text>
+        {/* LQ value. Only drawn inside the bubble — a small bubble's LQ used to
+            sit above it, where it collided with neighbouring sector labels. The
+            tooltip carries the value for bubbles too small to hold it. */}
+        {isLarge && (
+          <text
+            x={cx}
+            y={cy}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="#fff"
+            fontSize={11}
+            fontFamily="monospace"
+            fontWeight="bold"
+          >
+            {lqText}
+          </text>
+        )}
       </g>
     );
   }
+
+  // Sector labels are rendered by BubbleLabelLayer below, as a single layer on
+  // top of every bubble — drawn per-point they were painted over by later
+  // bubbles and by each other.
+  const labelPoints = data.map((d) => ({
+    x: d.growth,
+    y: d.lq,
+    r: getBubbleRadius(d.employment),
+    text: d.shortLabel,
+  }));
 
   return (
     <div className="bg-[#1a1d27] rounded-lg p-6 border border-gray-800">
@@ -227,6 +231,8 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
             strokeDasharray="4 4"
           />
           <Scatter data={data} shape={renderBubble} isAnimationActive={false} />
+          {/* After <Scatter>, so labels layer above every bubble. */}
+          <BubbleLabelLayer points={labelPoints} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

@@ -15,6 +15,7 @@ import {
 import { type MetroLQData } from "@/lib/useMultiLQData";
 import { type TrendResult } from "@/lib/blsApi";
 import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
+import BubbleLabelLayer from "./BubbleLabelLayer";
 
 const METRO_COLORS = ["#3b82f6", "#f59e0b", "#10b981"];
 
@@ -115,36 +116,41 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
       return (
         <g>
           <circle cx={cx} cy={cy} r={r} fill={`url(#${PATTERN_IDS[metroIndex]})`} stroke={metroColor} strokeWidth={1.5} />
-          {/* LQ value label */}
-          <text
-            x={cx}
-            y={isLarge ? cy : cy - r - 4}
-            textAnchor="middle"
-            dominantBaseline={isLarge ? "central" : "auto"}
-            fill={isLarge ? "#fff" : "#d1d5db"}
-            fontSize={isLarge ? 10 : 9}
-            fontFamily="monospace"
-            fontWeight="bold"
-          >
-            {lqText}
-          </text>
-          {/* Sector label — only for export sectors (LQ > 1.0) */}
-          {d.isExport && (
+          {/* LQ value. Only drawn inside the bubble — above a small bubble it
+              collided with neighbouring sector labels. The tooltip carries the
+              value for bubbles too small to hold it. */}
+          {isLarge && (
             <text
-              x={cx + r + 4}
+              x={cx}
               y={cy}
-              textAnchor="start"
+              textAnchor="middle"
               dominantBaseline="central"
-              fill="#9ca3af"
-              fontSize={9}
+              fill="#fff"
+              fontSize={10}
+              fontFamily="monospace"
+              fontWeight="bold"
             >
-              {d.shortLabel}
+              {lqText}
             </text>
           )}
         </g>
       );
     };
   }
+
+  // Sector labels for every metro are placed together, in one layer above all
+  // the bubbles: with up to three metros overlaid, labels collided across
+  // series as well as within them. Only export sectors are labelled, but every
+  // bubble is an obstacle, so unlabelled ones still get routed around.
+  const labelPoints = metroDataSets.flatMap((ds) =>
+    ds.data.map((d) => ({
+      x: d.growth,
+      y: d.lq,
+      r: getBubbleRadius(d.employment),
+      text: d.isExport ? d.shortLabel : "",
+      fill: ds.color,
+    }))
+  );
 
   return (
     <div className="bg-[#1a1d27] rounded-lg p-6 border border-gray-800">
@@ -262,6 +268,8 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
               legendType="none"
             />
           ))}
+          {/* After every <Scatter>, so labels layer above all bubbles. */}
+          <BubbleLabelLayer points={labelPoints} fontSize={9} />
         </ScatterChart>
       </ResponsiveContainer>
       {/* Custom legend */}
