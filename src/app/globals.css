@@ -75,6 +75,34 @@ html.light .hover\:text-blue-400:hover { color: #2563eb !important; }
 html.light .hover\:border-blue-800:hover { border-color: #93c5fd !important; }
 html.light .hover\:border-gray-600:hover { border-color: #cbd5e1 !important; }
 
+/* Charts
+ *
+ * Recharts draws SVG, and colours it with fill/stroke rather than the utility
+ * classes remapped above — so none of those rules reach chart text and it stays
+ * dark-theme grey on a white card. SVG presentation attributes lose to CSS, so
+ * plain rules are enough for anything set as an attribute; recharts sets axis
+ * titles via inline style, which needs !important to beat.
+ */
+
+/* Bubble chart sector labels. No !important on the fill: the compare chart
+   passes a per-metro colour inline, which must still win. */
+.bubble-label { fill: #9ca3af; }
+.bubble-label-line { stroke: #9ca3af; }
+/* Filled as well as stroked, and in the card's background colour: this copy
+   sits under the label purely to knock out whatever is behind it. With no fill
+   it defaults to black, which shows through the glyph edges as an outline. */
+.bubble-label-halo { fill: #1a1d27; stroke: #1a1d27; }
+
+html.light .bubble-label { fill: #0f172a; }
+html.light .bubble-label-line { stroke: #475569; }
+html.light .bubble-label-halo { fill: #ffffff; stroke: #ffffff; }
+
+/* Axis ticks and titles — #9ca3af/#6b7280 on white is roughly 2.5:1, below the
+   4.5:1 minimum for body text. */
+html.light .recharts-cartesian-axis-tick-value,
+html.light .recharts-cartesian-axis-tick-value tspan { fill: #475569 !important; }
+html.light .recharts-label { fill: #475569 !important; }
+
 /* Scrollbar */
 html.light ::-webkit-scrollbar-track { background: #f1f5f9; }
 html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }

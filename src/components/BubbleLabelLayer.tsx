@@ -20,7 +20,6 @@ interface BubbleLabelLayerProps {
    *  they do not belong to, so the whole set has to be placed together. */
   points: BubbleLabelPoint[];
   fontSize?: number;
-  fill?: string;
 }
 
 /**
@@ -38,7 +37,6 @@ interface BubbleLabelLayerProps {
 export default function BubbleLabelLayer({
   points,
   fontSize = 10,
-  fill = "#9ca3af",
 }: BubbleLabelLayerProps) {
   const xScale = useXAxisScale();
   const yScale = useYAxisScale();
@@ -72,36 +70,43 @@ export default function BubbleLabelLayer({
         <g key={`${l.text}-${i}`}>
           {l.line && (
             <line
+              className={l.fill ? undefined : "bubble-label-line"}
               x1={l.line.x1}
               y1={l.line.y1}
               x2={l.line.x2}
               y2={l.line.y2}
-              stroke={l.fill ?? fill}
+              stroke={l.fill}
               strokeWidth={0.75}
               strokeOpacity={0.5}
             />
           )}
-          {/* Halo first, so the label stays readable if it must sit near a bubble. */}
+          {/* Halo first, so the label stays readable if it must sit near a
+              bubble. Stroked in the card's background colour, which differs by
+              theme — hence the class rather than a literal. */}
           <text
+            className="bubble-label-halo"
             x={l.x}
             y={l.y}
             textAnchor={l.anchor}
             dominantBaseline="central"
             fontSize={fontSize}
-            stroke="#1a1d27"
             strokeWidth={3}
             strokeLinejoin="round"
             opacity={0.9}
           >
             {l.text}
           </text>
+          {/* No fill attribute unless the caller set one: the .bubble-label
+              class carries the per-theme default, and an attribute here would
+              defeat it. */}
           <text
+            className={l.fill ? undefined : "bubble-label"}
             x={l.x}
             y={l.y}
             textAnchor={l.anchor}
             dominantBaseline="central"
             fontSize={fontSize}
-            fill={l.fill ?? fill}
+            fill={l.fill}
           >
             {l.text}
           </text>
