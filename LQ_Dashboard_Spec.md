@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a public-facing web dashboard that computes and displays Location Quotient (LQ) economic base analysis for ~390 U.S. metropolitan statistical areas using free Bureau of Labor Statistics (BLS) employment data. The tool helps real estate investors, economic development professionals, site selectors, and anyone interested in understanding what drives a city's economy identify export sectors, assess concentration risk, compare metros side-by-side, and track 10-year employment trends.
+Build a public-facing web dashboard that computes and displays Location Quotient (LQ) economic base analysis for ~390 U.S. metropolitan statistical areas using free Bureau of Labor Statistics (BLS) employment data. The tool helps anyone trying to understand what drives a city's economy — economic development professionals, site selectors, investors, researchers, journalists, and the merely curious — identify export sectors, assess concentration risk, compare metros side-by-side, and track 10-year employment trends.
 
 The app should be a React frontend (Vite), deployed to Vercel as a standalone public website. It should be designed for SEO discoverability (people searching "location quotient calculator", "economic base analysis tool", "MSA employment comparison", etc.) and structured to support ad revenue via Google AdSense or similar ad networks.
 
@@ -23,12 +23,25 @@ This tool democratizes economic base analysis with a polished, modern UI.
 
 ### Audience
 
-- Real estate investors (primary — this is the community the creator is part of)
+This is a general-purpose economic analysis tool, not a vertical one. No single
+audience is primary: the underlying question — what does this metro actually do
+for a living, and how exposed is it — is the same whoever is asking, so the copy
+should stay legible to all of them and address none of them exclusively.
+
 - Economic development organizations and chambers of commerce
-- Site selection consultants
-- MBA and real estate finance students
+- Site selection consultants and businesses weighing expansion or relocation
 - Urban planning and public policy researchers
+- Investors and analysts assessing regional exposure
+- Business, economics, and planning students
 - Journalists covering local economies
+- Anyone deciding where to move, work, or build a career
+
+Note: the creator comes from real estate, and early drafts of this spec and the
+site treated real estate investors as the primary audience. That framing has been
+removed deliberately — it narrowed a broadly useful tool and left every other
+reader out. Concrete examples (DC and Government, Houston and Energy, Detroit and
+Manufacturing) are worth keeping; they teach the concept to any reader. Framing
+that presumes the reader is underwriting a deal is not.
 
 ---
 
@@ -70,8 +83,8 @@ A metro's **export base** = the sum of *positive* excess across sectors. This is
 
 Implementation lives in `src/lib/lqMetrics.ts` (single source of truth) and is mirrored in `scripts/build-screening-data.mjs`. Classification is derived from the LQ at read time in `useLQData`, so data files built under the old 1.2 threshold cannot leak a stale classification into the UI.
 
-**Why it matters for real estate:**
-- High-LQ sectors drive employment demand → population growth → housing demand
+**Why it matters:**
+- High-LQ sectors drive employment demand → population growth → local spending (and, downstream, housing demand)
 - Concentration risk: if a city's dominant export sector contracts, the multiplier effect drags everything down (e.g., DC and government cuts, Detroit and auto manufacturing)
 - Employment multiplier: each export-sector job typically supports 1.5–3 additional service-sector jobs
 
@@ -210,7 +223,7 @@ Series ID: SMU11477649000000001
 
 ### Key Metro Area Codes
 
-Here are metros relevant to Clear Bay's portfolio and pipeline, plus major US metros. The full list of ~390 MSAs and ~37 divisions is available at https://www.bls.gov/eag/home.htm. A comprehensive area code list can be scraped from the BLS EAG page or downloaded from https://download.bls.gov/pub/time.series/sm/ (the `sm.area` file contains all area codes).
+A worked sample: major US metros, plus the DC-area divisions the tool was first tested against. It is illustrative, not a curated set the product is built around — the app covers all ~390 MSAs and ~37 divisions equally. The full list is available at https://www.bls.gov/eag/home.htm. A comprehensive area code list can be scraped from the BLS EAG page or downloaded from https://download.bls.gov/pub/time.series/sm/ (the `sm.area` file contains all area codes).
 
 > **This table is reference documentation, not a data source.** The app resolves
 > every metro from `public/data/lq_all_metros.json`, built from BLS CES data by
@@ -296,7 +309,7 @@ User selects 2–3 metros. The app:
 3. Shows side-by-side summary tables for each metro
 4. Highlights the biggest LQ differences between the selected metros
 
-This is the feature that made the DC-MD vs NoVA comparison so powerful — being able to see that DC's export base is Government (LQ 1.92) while NoVA's is Professional & Business Services (LQ 1.91) tells a completely different investment story.
+This is the feature that made the DC-MD vs NoVA comparison so powerful — being able to see that DC's export base is Government (LQ 1.92) while NoVA's is Professional & Business Services (LQ 1.91) tells a completely different economic story about two neighbouring markets.
 
 ### Phase 3: 10-Year Trend Lines
 
@@ -312,7 +325,7 @@ For any selected metro, show how each supersector's employment and LQ has change
 
 ### Phase 4: Screening/Filtering Tool
 
-The most powerful feature — search across all ~390 MSAs to find markets matching investment criteria.
+The most powerful feature — search across all ~390 MSAs to find markets matching whatever criteria the reader cares about.
 
 **Implementation approach:** Since you can't call the BLS API 390 times in real-time (rate limit: 500/day, and it would take minutes), this requires a **pre-computed data layer**:
 
@@ -473,21 +486,35 @@ Implementation: `computeMatchedGrowth()` / `growthWindow()` in `src/lib/lqMetric
 
 ## Context: How This Tool Gets Used
 
-### Real Estate Investors (primary audience)
-- Underwrite markets: understand the economic base driving demand before opening a proforma
-- Screen new markets: "show me all MSAs where Professional & Business Services LQ > 1.3 and growing"
-- Assess risk: identify single-industry dependency (e.g., DC and government, Houston and energy)
-- Pitch to investors: include LQ analysis in offering memorandums to demonstrate market-level diligence
-- Track trends: monitor whether a market's export base is growing or shrinking
+These are peers, not a hierarchy. The same three questions — what does this metro
+export, how concentrated is it, and which way is it moving — serve all of them.
 
 ### Economic Development & Site Selection
 - Compare candidate markets for corporate relocations
 - Identify competitive advantages of a region
 - Support grant applications with economic base data
+- Screen markets: "show me all MSAs where Professional & Business Services LQ > 1.3 and growing"
+
+### Businesses Weighing a Move
+- Check whether a metro has the labour base a given operation needs
+- Spot markets where an industry is over- or under-served relative to the nation
+
+### Investors & Analysts
+- Understand the economic base driving demand in a market before committing
+- Assess risk: identify single-industry dependency (e.g., DC and government, Houston and energy)
+- Track trends: monitor whether a market's export base is growing or shrinking
+
+### Public Policy & Planning
+- Quantify exposure to a single employer or sector
+- Track whether diversification efforts are moving the base
 
 ### Students & Researchers
 - Learn economic base theory with real, interactive data
 - Run location quotient analysis without building their own spreadsheets
+
+### Journalists & Residents
+- Answer "what does this city actually do for a living?" with a citable source
+- Compare a hometown against peers on the same measure
 
 ---
 
