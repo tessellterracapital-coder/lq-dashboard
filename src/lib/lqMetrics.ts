@@ -111,3 +111,59 @@ export function formatJobs(thousands: number): string {
   const jobs = Math.round(thousands * 1000);
   return jobs.toLocaleString();
 }
+
+// ---------------------------------------------------------------------------
+// Employment growth
+// ---------------------------------------------------------------------------
+
+/** Number of years spanned by the headline growth figure. */
+export const GROWTH_WINDOW_YEARS = 10;
+
+export interface DatedEmployment {
+  /** "YYYY-MM" */
+  date: string;
+  employment: number;
+}
+
+/**
+ * Month-matched growth over GROWTH_WINDOW_YEARS, ending at the latest month
+ * available in the series.
+ *
+ * BLS CES metro data is NOT seasonally adjusted, so only over-the-year
+ * comparisons are valid — the same calendar month, N years apart. A previous
+ * version compared the first point in the series (January 2015) to the last
+ * available month, which mixed a seasonal trough against a seasonal peak and
+ * inflated growth by roughly 5-6 percentage points, while spanning an arbitrary
+ * window rather than a decade.
+ *
+ * Returns null when the matching month 10 years back is unavailable, rather
+ * than silently falling back to a mismatched month.
+ */
+export function computeMatchedGrowth(points: DatedEmployment[]): number | null {
+  if (!points || points.length < 2) return null;
+
+  const sorted = [...points]
+    .filter((p) => p && p.date && typeof p.employment === "number")
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (sorted.length < 2) return null;
+
+  const end = sorted[sorted.length - 1];
+  const [ey, em] = end.date.split("-");
+  const startDate = `${parseInt(ey, 10) - GROWTH_WINDOW_YEARS}-${em}`;
+
+  const start = sorted.find((p) => p.date === startDate);
+  if (!start || !start.employment) return null;
+
+  return ((end.employment - start.employment) / start.employment) * 100;
+}
+
+/** The window actually used, for labelling. e.g. { start: "2016-05", end: "2026-05" } */
+export function growthWindow(points: DatedEmployment[]): { start: string; end: string } | null {
+  if (!points || points.length < 2) return null;
+  const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const end = sorted[sorted.length - 1];
+  const [ey, em] = end.date.split("-");
+  const startDate = `${parseInt(ey, 10) - GROWTH_WINDOW_YEARS}-${em}`;
+  if (!sorted.some((p) => p.date === startDate)) return null;
+  return { start: startDate, end: end.date };
+}

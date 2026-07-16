@@ -19,6 +19,9 @@ export interface ScreeningMetro {
   areaType: AreaType;
   totalEmployment: number;
   employmentGrowthPct: number | null;
+  /** Month-matched growth window actually used, e.g. 2016-05 to 2026-05. */
+  growthStartDate?: string | null;
+  growthEndDate?: string | null;
   dataYear: string;
   dataPeriod: string;
   topExportSector: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { type TrendResult } from "@/lib/blsApi";
+import { growthWindow } from "@/lib/lqMetrics";
 
 interface TrendSummaryTableProps {
   trendData: TrendResult;
@@ -12,8 +13,14 @@ export default function TrendSummaryTable({ trendData }: TrendSummaryTableProps)
       const sorted = [...series.data].sort((a, b) => a.date.localeCompare(b.date));
       if (sorted.length < 2) return null;
 
-      const first = sorted[0];
-      const last = sorted[sorted.length - 1];
+      // Compare the same calendar month 10 years apart. The series runs from
+      // Jan 2015 to whatever BLS last published, so taking its endpoints would
+      // mix a seasonal trough against a seasonal peak in NSA data — and would
+      // not span a decade. Falls back to the full range only if the matched
+      // month is unavailable.
+      const win = growthWindow(sorted);
+      const first = (win && sorted.find((p) => p.date === win.start)) || sorted[0];
+      const last = (win && sorted.find((p) => p.date === win.end)) || sorted[sorted.length - 1];
 
       const empChange = last.employment - first.employment;
       const empChangePct = first.employment !== 0 ? (empChange / first.employment) * 100 : 0;

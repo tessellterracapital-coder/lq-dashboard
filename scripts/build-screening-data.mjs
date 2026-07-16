@@ -85,6 +85,9 @@ const CE_DATA_FILES = [
 
 const TREND_START_YEAR = 2015;
 
+// Headline growth window. NSA data requires comparing the same calendar month.
+const GROWTH_WINDOW_YEARS = 10;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -385,7 +388,7 @@ function buildAllMetroData(
         // Excess (basic) employment: jobs beyond what the metro needs to serve
         // itself. Computed from unrounded shares. This — not the LQ ratio — is
         // the magnitude an employment multiplier acts on.
-        excessEmployment: Math.round((localValue - localTotal * nationalShare) * 10) / 10,
+        excessEmployment: Math.round((localValue - totalNonfarm * nationalShare) * 10) / 10,
       });
     }
 
@@ -434,15 +437,27 @@ function buildAllMetroData(
       });
     }
 
-    // Compute overall employment growth from total nonfarm trend
+    // Overall employment growth, month-matched over GROWTH_WINDOW_YEARS.
+    //
+    // BLS CES metro data is NOT seasonally adjusted, so only over-the-year
+    // comparisons are valid. A previous version compared the first point in the
+    // series (January 2015) to the latest available month, mixing a seasonal
+    // trough against a seasonal peak -- inflating growth by ~5-6 points -- and
+    // spanning an arbitrary window rather than a decade.
     let employmentGrowthPct = null;
+    let growthStartDate = null;
+    let growthEndDate = null;
     const totalNonfarmTrend = areaT["00000000"];
     if (totalNonfarmTrend && totalNonfarmTrend.length >= 2) {
       const sortedTrend = [...totalNonfarmTrend].sort((a, b) => a.date.localeCompare(b.date));
-      const first = sortedTrend[0];
       const last = sortedTrend[sortedTrend.length - 1];
-      if (first.value > 0) {
-        employmentGrowthPct = Math.round(((last.value - first.value) / first.value) * 1000) / 10;
+      const [ey, em] = last.date.split("-");
+      const startDate = `${parseInt(ey, 10) - GROWTH_WINDOW_YEARS}-${em}`;
+      const start = sortedTrend.find((p) => p.date === startDate);
+      if (start && start.value > 0) {
+        employmentGrowthPct = Math.round(((last.value - start.value) / start.value) * 1000) / 10;
+        growthStartDate = start.date;
+        growthEndDate = last.date;
       }
     }
 
@@ -472,6 +487,8 @@ function buildAllMetroData(
       areaType,
       totalEmployment: totalNonfarm,
       employmentGrowthPct,
+      growthStartDate,
+      growthEndDate,
       dataYear: area.dataYear,
       dataPeriod: area.dataPeriod,
       topExportSector: topExport.label,

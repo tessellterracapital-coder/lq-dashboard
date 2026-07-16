@@ -438,6 +438,16 @@ Dark theme, data-dense, professional. Think Bloomberg terminal meets modern dash
 - Not all ~390 MSAs will have data for all 10 supersectors. Smaller metros may only publish total nonfarm + a few sectors. The app should gracefully handle missing data (show "N/A" rather than crashing).
 - BLS employment values are in thousands (e.g., `1140.2` = 1,140,200 jobs). Display as-is with "K" suffix.
 - Data is not seasonally adjusted (NSA). Over-the-year comparisons are valid; month-to-month comparisons are not (due to seasonality).
+
+**Growth must be month-matched (decided; do not revert):**
+
+Because CES metro data is NSA, every growth figure compares the **same calendar month, exactly 10 years apart** (e.g. May 2016 → May 2026). An earlier build compared the first point in the series (January 2015) to the latest available month, which:
+- mixed a seasonal trough (January) against a seasonal peak — Cincinnati alone gained **4.7%** between Jan-2015 and Dec-2015 from seasonality with no real growth; and
+- spanned an arbitrary window (11.3 years) while being labelled "10-Year Change".
+
+The effect was an overstatement of roughly **5–6 percentage points** on every metro (Cincinnati read 14.4% instead of 8.3%; Kansas City 15.6% instead of 10.0%).
+
+Implementation: `computeMatchedGrowth()` / `growthWindow()` in `src/lib/lqMetrics.ts`, mirrored by `GROWTH_WINDOW_YEARS` in `scripts/build-screening-data.mjs`. Call sites: the pipeline's `employmentGrowthPct`, `LQBubbleChart`, `CompareBubbleChart`, `NarrativeSummary`, and `TrendSummaryTable`. The pipeline also emits `growthStartDate` / `growthEndDate` so the window is auditable. When the matched month is unavailable the helpers return `null` rather than silently falling back to a mismatched month.
 - The BLS restructured DC metro divisions from 2 to 3 in July 2023. Historical comparisons for the DC-MD and NoVA divisions before that date should be flagged as approximate.
 - Some series may have footnotes indicating preliminary data (`(p)`). Show these indicators in the UI.
 
@@ -469,30 +479,4 @@ The landing page should serve dual purposes: (1) funnel users into the tool, and
 
 ### Landing Page Sections
 
-1. **Hero:** Search bar front and center. "What drives your city's economy?" with a metro search input. Show a few featured metros as quick-access chips (New York, Los Angeles, Chicago, Houston, DC).
-
-2. **"What is a Location Quotient?" explainer:** 3–4 paragraphs explaining the concept in plain language:
-   - An LQ greater than 1.0 identifies an industry that produces more than the local population needs — the excess is exported to the rest of the world, bringing outside money into the region.
-   - That income circulates through the local economy as workers spend on housing, restaurants, childcare, and other services, creating additional jobs. This is the multiplier effect.
-   - The higher the LQ, the more concentrated — and more dependent — the local economy is on that industry.
-   - Include the formula with a worked example (e.g., if 28% of DC jobs are government vs 15% nationally, LQ = 28/15 = 1.87).
-
-3. **Visual example:** Show an embedded LQ bar chart for a recognizable city (e.g., Washington DC or Houston) as a static preview that links to the full analysis.
-
-4. **"How to use this tool" section:** Brief guide: search a metro → see the LQ chart → identify export sectors → compare metros → screen for investment criteria.
-
-5. **About page (`/about`):** Deeper educational content on economic base theory, export base theory, the multiplier effect, how BLS data is collected, and limitations of LQ analysis (e.g., it doesn't capture remote work, doesn't distinguish quality of jobs, uses broad supersector categories). This page is important for SEO — it targets long-tail searches like "how to do economic base analysis" and "what is export base theory real estate".
-
----
-
-## API Key Security Note
-
-The BLS API key is included in the spec for development. For the public-facing production deployment, the key will be exposed in client-side JavaScript (it's included in POST requests from the browser). This is acceptable because:
-- BLS API keys are free and unlimited to create
-- The v2 rate limit is 500 queries/day per key, which is sufficient for moderate traffic
-- If the site scales significantly, you can either:
-  - Create multiple API keys and rotate them
-  - Move the API calls to a serverless backend (Vercel Edge Functions) to keep the key server-side
-  - Switch to the BLS flat file download approach for all data (no API key needed, no rate limits)
-
-For Phase 4 (screening), the flat file approach is recommended regardless — it's faster, has no rate limits, and allows pre-computation of all metrics.
+1. **Hero:** Search bar front a

@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { type MetroLQData } from "@/lib/useMultiLQData";
 import { type TrendResult } from "@/lib/blsApi";
+import { computeMatchedGrowth } from "@/lib/lqMetrics";
 
 const METRO_COLORS = ["#3b82f6", "#f59e0b", "#10b981"];
 
@@ -57,11 +58,8 @@ function computeGrowth(trendData: TrendResult | null, supersectorCode: string): 
   if (!trendData) return 0;
   const series = trendData.series.find((s) => s.supersectorCode === supersectorCode);
   if (!series || series.data.length < 2) return 0;
-  const sorted = [...series.data].sort((a, b) => a.date.localeCompare(b.date));
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
-  if (first.employment === 0) return 0;
-  return ((last.employment - first.employment) / first.employment) * 100;
+  // Month-matched: NSA data only supports over-the-year comparisons.
+  return computeMatchedGrowth(series.data) ?? 0;
 }
 
 export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) {

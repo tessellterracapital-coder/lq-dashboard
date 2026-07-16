@@ -3,6 +3,7 @@
 import { type LQResult } from "@/lib/blsApi";
 import { type TrendResult } from "@/lib/blsApi";
 import { computeHHI, getGrade, getGradeLabel } from "@/lib/concentrationScore";
+import { computeMatchedGrowth } from "@/lib/lqMetrics";
 
 interface NarrativeSummaryProps {
   metroName: string;
@@ -10,14 +11,11 @@ interface NarrativeSummaryProps {
   trendData: TrendResult | null;
 }
 
-function computeGrowth(trendData: TrendResult, code: string): number | null {
-  const series = trendData.series.find((s) => s.supersectorCode === code);
+function computeGrowth(trendData: TrendResult, supersectorCode: string): number | null {
+  const series = trendData.series.find((s) => s.supersectorCode === supersectorCode);
   if (!series || series.data.length < 2) return null;
-  const sorted = [...series.data].sort((a, b) => a.date.localeCompare(b.date));
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
-  if (first.employment === 0) return null;
-  return ((last.employment - first.employment) / first.employment) * 100;
+  // Month-matched: NSA data only supports over-the-year comparisons.
+  return computeMatchedGrowth(series.data);
 }
 
 export default function NarrativeSummary({ metroName, results, trendData }: NarrativeSummaryProps) {
