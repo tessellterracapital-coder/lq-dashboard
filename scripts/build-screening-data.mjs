@@ -321,23 +321,56 @@ function buildAllMetroData(
 ) {
   console.log("\n[4/5] Computing LQ and trends for all metros...");
 
-  const nationalTotal = national["00000000"]?.value ?? 0;
-  if (nationalTotal === 0) throw new Error("No national total nonfarm data");
+  if (!(national["00000000"]?.value > 0)) throw new Error("No national total nonfarm data");
 
-  // Group latest data by area
+  // Area identity only. Values are read per-date below, not from here: picking
+  // the latest point per series independently lets one late-reporting sector
+  // divide its employment by another month's total, inside a single row.
   const areaData = {};
-  for (const [sid, dp] of Object.entries(latestBySeries)) {
+  for (const [sid] of Object.entries(latestBySeries)) {
     const info = seriesLookup[sid];
     const key = `${info.stateCode}-${info.areaCode}`;
     if (!areaData[key]) {
-      areaData[key] = { stateCode: info.stateCode, areaCode: info.areaCode, sectors: {} };
-    }
-    areaData[key].sectors[info.industryCode] = dp.value;
-    if (info.industryCode === "00000000") {
-      areaData[key].dataYear = dp.year;
-      areaData[key].dataPeriod = dp.period;
+      areaData[key] = { stateCode: info.stateCode, areaCode: info.areaCode };
     }
   }
+
+  // key -> date -> industryCode -> value
+  const areaByDate = {};
+  for (const [sid, points] of Object.entries(trendBySeries)) {
+    const info = seriesLookup[sid];
+    const key = `${info.stateCode}-${info.areaCode}`;
+    if (!areaByDate[key]) areaByDate[key] = {};
+    for (const p of points) {
+      if (!areaByDate[key][p.date]) areaByDate[key][p.date] = {};
+      areaByDate[key][p.date][info.industryCode] = p.value;
+    }
+  }
+
+  /**
+   * The month a metro's headline figures are reported for: its most recent
+   * month that also has national data, so local and national shares are drawn
+   * from the same month.
+   *
+   * National CES publishes ahead of metro CES — at the time of writing, national
+   * is a month further along. Reading "current" from each side's own latest
+   * month therefore divided one month's metro share by another month's national
+   * share, while labelling the row with the metro's month. That is what made the
+   * headline LQ disagree with the last point of its own trend line.
+   */
+  function resolveAsOf(key) {
+    const dates = Object.keys(areaByDate[key] ?? {}).sort();
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const date = dates[i];
+      if (!areaByDate[key][date]["00000000"]) continue;
+      const nat = nationalByDate[date];
+      if (!nat || !nat["00000000"]) continue;
+      return date;
+    }
+    return null;
+  }
+
+  const asOfUsed = new Set();
 
   // Group trend data by area
   const areaTrends = {};
@@ -352,20 +385,36 @@ function buildAllMetroData(
   const results = [];
 
   for (const [key, area] of Object.entries(areaData)) {
-    const totalNonfarm = area.sectors["00000000"];
-    if (!totalNonfarm || totalNonfarm === 0) continue;
-
     const areaName = areaNames[area.areaCode];
     if (!areaName) continue;
     if (area.areaCode === "00000") continue;
+
+    // Everything below — metro sectors, metro total, national sectors, national
+    // total — is read at this one month. Nothing here may fall back to another
+    // month's value.
+    const asOf = resolveAsOf(key);
+    if (!asOf) continue;
+    asOfUsed.add(asOf);
+
+    const monthData = areaByDate[key][asOf];
+    const natAtDate = nationalByDate[asOf];
+    const totalNonfarm = monthData["00000000"];
+    const nationalTotal = natAtDate["00000000"];
+    if (!totalNonfarm || !nationalTotal) continue;
+
+    const [asOfYear, asOfMonth] = asOf.split("-");
+    area.dataYear = asOfYear;
+    area.dataPeriod = `M${asOfMonth}`;
 
     const lqBySector = {};
     const sectors = [];
 
     for (const code of SUPERSECTOR_CODES) {
       if (code === "00000000") continue;
-      const localValue = area.sectors[code];
-      const nationalValue = national[code]?.value;
+      const localValue = monthData[code];
+      const nationalValue = natAtDate[code];
+      // A sector absent at the as-of month is omitted rather than filled from an
+      // earlier month — a stale numerator over a current total is not an LQ.
       if (!localValue || !nationalValue || nationalValue === 0) continue;
 
       const localShare = localValue / totalNonfarm;
@@ -506,23 +555,44 @@ function buildAllMetroData(
 
   results.sort((a, b) => b.totalEmployment - a.totalEmployment);
   console.log(`  ${results.length} metros with complete data`);
-  return results;
+
+  const asOfList = [...asOfUsed].sort();
+  console.log(
+    `  As-of month: ${asOfList.join(", ")}${
+      asOfList.length > 1 ? " (metros report at different months)" : ""
+    }`
+  );
+  const natLatest = `${national["00000000"]?.year}-${periodToMonth(national["00000000"]?.period)}`;
+  if (asOfList.length && asOfList[asOfList.length - 1] !== natLatest) {
+    console.log(
+      `  National data runs to ${natLatest}; LQ is computed at each metro's own month, so the newer national months are not used yet.`
+    );
+  }
+
+  return { results, asOfList };
 }
 
 // ---------------------------------------------------------------------------
 // Step 5: Write output
 // ---------------------------------------------------------------------------
 
-function writeOutput(results, national) {
+function writeOutput(results, asOfList) {
   console.log("\n[5/5] Writing output...");
   mkdirSync(OUTPUT_DIR, { recursive: true });
   mkdirSync(join(OUTPUT_DIR, "metros"), { recursive: true });
+
+  // The month the LQs are actually computed at, not the newest national month
+  // available. These differ — national CES publishes ahead of metro CES — and
+  // reporting the national month here claimed a freshness the figures did not
+  // have. Each metro also carries its own dataPeriod; this is the newest in use.
+  const latestAsOf = asOfList[asOfList.length - 1];
+  const [asOfYear, asOfMonth] = latestAsOf.split("-");
 
   // 1. Screening file (no trends — keeps it small for the filter page)
   const screeningMetros = results.map(({ trends, ...rest }) => rest);
   const screeningOutput = {
     generatedAt: new Date().toISOString(),
-    nationalDataPeriod: `${national["00000000"]?.period} ${national["00000000"]?.year}`,
+    nationalDataPeriod: `M${asOfMonth} ${asOfYear}`,
     metroCount: results.length,
     metros: screeningMetros,
   };
@@ -548,8 +618,8 @@ async function main() {
   const { areaText, seriesText, dataText, ceTexts } = await downloadAllFiles();
   const nationalData = parseNationalData(ceTexts);
   const metroData = parseMetroData(areaText, seriesText, dataText);
-  const results = buildAllMetroData(metroData, nationalData);
-  writeOutput(results, nationalData.national);
+  const { results, asOfList } = buildAllMetroData(metroData, nationalData);
+  writeOutput(results, asOfList);
 
   console.log("\nDone! No API calls were made.");
 }
