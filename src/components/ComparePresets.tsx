@@ -18,16 +18,21 @@ const PRESETS = [
       "m1=madison-wi&m2=ann-arbor-mi&m3=durham-chapel-hill-nc",
   },
   {
-    label: "Sun Belt Tech Hubs",
-    desc: "Austin vs Raleigh vs Nashville",
+    label: "Mountain West",
+    desc: "Denver vs Salt Lake vs Boise",
     params:
-      "m1=austin-round-rock-san-marcos-tx&m2=raleigh-cary-nc&m3=nashville-davidson-murfreesboro-franklin-tn",
+      "m1=denver-aurora-centennial-co&m2=salt-lake-city-murray-ut&m3=boise-city-id",
   },
   {
-    label: "Texas Triangle",
-    desc: "Houston vs Dallas vs Austin",
+    // Only Midland actually is one: Mining/Logging/Construction at LQ 5.90 is
+    // 27.9% of the metro, and its next sector is LQ 1.01 (+88 jobs) — the whole
+    // export base is one industry. The other two are famous for a signature
+    // sector but are not dependent on it; the excess columns are what show the
+    // difference. See the note in the compare table.
+    label: "One-Industry Towns",
+    desc: "San Jose vs Detroit vs Midland",
     params:
-      "m1=houston-pasadena-the-woodlands-tx&m2=dallas-fort-worth-arlington-tx&m3=austin-round-rock-san-marcos-tx",
+      "m1=san-jose-sunnyvale-santa-clara-ca&m2=detroit-warren-dearborn-mi&m3=midland-tx",
   },
   {
     // All three are top-10 for 10-year employment growth among the 71 metros

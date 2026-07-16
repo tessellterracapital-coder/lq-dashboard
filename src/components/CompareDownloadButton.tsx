@@ -16,10 +16,19 @@ export default function CompareDownloadButton({ metros }: CompareDownloadButtonP
   const handleDownload = useCallback(() => {
     const metroNames = metros.map((m) => shortenMetroName(m.metroName));
 
-    // Header row
+    // Header row. Excess columns mirror the on-screen table: jobs beyond what
+    // the metro needs to serve itself, and that figure over the metro's total
+    // employment. Both in thousands, as BLS publishes.
     const headers = ["Industry"];
     for (const name of metroNames) {
-      headers.push(`${name} Emp (K)`, `${name} % of Total`, `${name} LQ`, `${name} Class.`);
+      headers.push(
+        `${name} Emp (K)`,
+        `${name} % of Total`,
+        `${name} LQ`,
+        `${name} Class.`,
+        `${name} Excess (K)`,
+        `${name} Excess % of Metro`
+      );
     }
 
     const rows: string[] = [headers.join(",")];
@@ -29,23 +38,40 @@ export default function CompareDownloadButton({ metros }: CompareDownloadButtonP
       for (const metro of metros) {
         const r = metro.lqResults.find((r) => r.supersectorCode === sector.code);
         if (r?.hasData) {
+          const excessPct = metro.totalEmployment
+            ? (r.excessEmployment / metro.totalEmployment) * 100
+            : null;
           cols.push(
             r.localEmployment.toFixed(1),
             r.localPctOfTotal.toFixed(1),
             r.lq.toFixed(2),
-            r.classification
+            r.classification,
+            r.excessEmployment.toFixed(1),
+            excessPct !== null ? excessPct.toFixed(1) : ""
           );
         } else {
-          cols.push("", "", "", "");
+          cols.push("", "", "", "", "", "");
         }
       }
       rows.push(cols.join(","));
     }
 
-    // Total row
+    // Total row. The excess column totals the positive values only — that sum is
+    // the metro's export base; netting imports against it would understate it.
     const totalCols: string[] = ['"Total Nonfarm"'];
     for (const metro of metros) {
-      totalCols.push(metro.totalEmployment.toFixed(1), "100.0", "", "");
+      const exportBase = metro.lqResults
+        .filter((r) => r.hasData)
+        .reduce((sum, r) => sum + Math.max(0, r.excessEmployment), 0);
+      const basePct = metro.totalEmployment ? (exportBase / metro.totalEmployment) * 100 : null;
+      totalCols.push(
+        metro.totalEmployment.toFixed(1),
+        "100.0",
+        "",
+        "Export base:",
+        exportBase.toFixed(1),
+        basePct !== null ? basePct.toFixed(1) : ""
+      );
     }
     rows.push(totalCols.join(","));
 
