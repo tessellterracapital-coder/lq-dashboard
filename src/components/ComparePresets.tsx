@@ -7,10 +7,13 @@
 // is eventually pruned.
 const PRESETS = [
   {
-    label: "DC vs NoVA",
-    desc: "Government vs. private-sector economy",
+    // Three metros, three different dominant sectors, all far above the national
+    // mix — the clearest demonstration of what an LQ actually measures. San Jose
+    // is the most concentrated large metro in the dataset.
+    label: "Specialized Economies",
+    desc: "San Jose vs Las Vegas vs Des Moines",
     params:
-      "m1=washington-dc-md-metropolitan-division&m2=arlington-alexandria-reston-va-wv-metropolitan-division",
+      "m1=san-jose-sunnyvale-santa-clara-ca&m2=las-vegas-henderson-north-las-vegas-nv&m3=des-moines-west-des-moines-ia",
   },
   {
     label: "Sun Belt Tech Hubs",
@@ -25,10 +28,12 @@ const PRESETS = [
       "m1=houston-pasadena-the-woodlands-tx&m2=dallas-fort-worth-arlington-tx&m3=austin-round-rock-san-marcos-tx",
   },
   {
+    // Cleveland, not Minneapolis: the Twin Cities sit on the Mississippi, not
+    // the lakes. All three of these are lakefront.
     label: "Great Lakes",
-    desc: "Chicago vs Detroit vs Minneapolis",
+    desc: "Chicago vs Detroit vs Cleveland",
     params:
-      "m1=chicago-naperville-elgin-il-in&m2=detroit-warren-dearborn-mi&m3=minneapolis-st-paul-bloomington-mn-wi",
+      "m1=chicago-naperville-elgin-il-in&m2=detroit-warren-dearborn-mi&m3=cleveland-oh",
   },
   {
     label: "West Coast Giants",
