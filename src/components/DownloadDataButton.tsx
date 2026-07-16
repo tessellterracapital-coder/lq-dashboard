@@ -14,14 +14,14 @@ interface DownloadDataButtonProps {
 
 function buildLQCSV(metroName: string, results: LQResult[], totalEmployment?: number): string {
   const rows: string[] = [];
-  rows.push("Industry,Employment (K),% of Total,LQ,Classification");
+  rows.push("Industry,Employment (K),% of Total,LQ,Excess Employment (K),Classification");
   for (const r of results.filter((r) => r.hasData)) {
     rows.push(
-      `"${r.label}",${r.localEmployment.toFixed(1)},${r.localPctOfTotal.toFixed(1)},${r.lq.toFixed(2)},${r.classification}`
+      `"${r.label}",${r.localEmployment.toFixed(1)},${r.localPctOfTotal.toFixed(1)},${r.lq.toFixed(2)},${r.excessEmployment.toFixed(1)},${r.classification}`
     );
   }
   if (totalEmployment) {
-    rows.push(`"Total Nonfarm",${totalEmployment.toFixed(1)},100.0,,`);
+    rows.push(`"Total Nonfarm",${totalEmployment.toFixed(1)},100.0,,,`);
   }
   return `"${metroName} — Location Quotient Data"\n\n${rows.join("\n")}`;
 }

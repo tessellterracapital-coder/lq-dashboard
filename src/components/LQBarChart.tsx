@@ -19,8 +19,9 @@ interface LQBarChartProps {
 }
 
 function getBarColor(lq: number): string {
-  if (lq >= 1.2) return "#3b82f6"; // blue-500 — export
-  if (lq >= 1.0) return "#6b7280"; // gray-500 — local (above 1)
+  // Color break matches the 1.0 reference line drawn on this chart.
+  if (lq > 1.0) return "#3b82f6"; // blue-500 — export
+  if (lq === 1.0) return "#6b7280"; // gray-500 — balanced
   if (lq >= 0.8) return "#6b7280"; // gray-500 — local
   return "#ef4444"; // red-500 — import
 }

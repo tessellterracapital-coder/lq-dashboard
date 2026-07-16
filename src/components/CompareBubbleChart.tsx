@@ -80,7 +80,7 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
         lq: r.lq,
         growth: computeGrowth(metro.trendData, r.supersectorCode),
         employment: r.localEmployment,
-        isExport: r.lq >= 1.2,
+        isExport: r.lq > 1.0,
       }));
     return { data, color: METRO_COLORS[i], name: shortenMetroName(metro.metroName), slug: metro.metroSlug };
   });
@@ -125,7 +125,7 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
           >
             {lqText}
           </text>
-          {/* Sector label — only for export sectors (LQ >= 1.2) */}
+          {/* Sector label — only for export sectors (LQ > 1.0) */}
           {d.isExport && (
             <text
               x={cx + r + 4}
@@ -152,7 +152,7 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
         LQ vs. 10-Year Employment Growth
       </h3>
       <p className="text-xs text-gray-600 mb-4">
-        Bubble size = employment level. X&#8209;axis = 10&#8209;year growth&nbsp;%. Y&#8209;axis = LQ. Export sectors (LQ &ge; 1.2) are labeled.
+        Bubble size = employment level. X&#8209;axis = 10&#8209;year growth&nbsp;%. Y&#8209;axis = LQ. Export sectors (LQ &gt; 1.0) are labeled.
       </p>
       <ResponsiveContainer width="100%" height={500}>
         <ScatterChart margin={{ top: 20, right: 130, bottom: 20, left: 10 }}>

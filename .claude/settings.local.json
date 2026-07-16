@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mschn/**)",
+      "Bash(npx create-next-app@latest lq-dashboard-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm)",
+      "Bash(npx create-next-app@latest lq-dashboard-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --turbopack)",
+      "Bash(printf \"n\\\\nn\\\\n\")",
+      "Bash(npx create-next-app@14 lq-dashboard-temp --ts --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm)",
+      "Bash(cp -r /c/Users/mschn/lq-dashboard-temp/* /c/Users/mschn/lq-dashboard/)",
+      "Bash(cp /c/Users/mschn/lq-dashboard-temp/.* /c/Users/mschn/lq-dashboard/)",
+      "Bash(rm -rf /c/Users/mschn/lq-dashboard-temp)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(curl -s -X POST \"https://api.bls.gov/publicAPI/v2/timeseries/data/\" -H \"Content-Type: application/json\" -d '{\"\"\"\"seriesid\"\"\"\":[\"\"\"\"SMU11477640000000001\"\"\"\",\"\"\"\"SMU11477649000000001\"\"\"\"],\"\"\"\"startyear\"\"\"\":\"\"\"\"2024\"\"\"\",\"\"\"\"endyear\"\"\"\":\"\"\"\"2026\"\"\"\",\"\"\"\"registrationkey\"\"\"\":\"\"\"\"b91db61638054b0397caa7209d528425\"\"\"\"}')",
+      "Bash(curl -v -X POST \"https://api.bls.gov/publicAPI/v2/timeseries/data/\" -H \"Content-Type: application/json\" -d \"{\"\"seriesid\"\":[\"\"SMU11477640000000001\"\",\"\"SMU11477649000000001\"\"],\"\"startyear\"\":\"\"2024\"\",\"\"endyear\"\":\"\"2026\"\",\"\"registrationkey\"\":\"\"b91db61638054b0397caa7209d528425\"\"}\")",
+      "Bash(curl:*)",
+      "Bash(taskkill //f //im node.exe)",
+      "WebFetch(domain:download.bls.gov)",
+      "Bash(wget -q -O - --user-agent=\"Mozilla/5.0\" https://download.bls.gov/pub/time.series/sm/sm.area)",
+      "Bash(wget -q -O - --user-agent=\"Mozilla/5.0\" https://download.bls.gov/pub/time.series/sm/sm.series)",
+      "Bash(wget -q -O - --user-agent=\"Mozilla/5.0\" https://download.bls.gov/pub/time.series/sm/sm.data.0.Current)",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri 'https://download.bls.gov/pub/time.series/sm/sm.area' -UserAgent 'Mozilla/5.0'\\).Content | Select-Object -First 20\")",
+      "WebSearch",
+      "WebFetch(domain:www.bls.gov)",
+      "WebFetch(domain:db.nomics.world)",
+      "WebFetch(domain:www.michaelc-m.com)",
+      "WebFetch(domain:bd-econ.com)",
+      "Bash(node scripts/build-screening-data.mjs)",
+      "Bash(node -e \"const d = require\\(''./public/data/lq_all_metros.json''\\); console.log\\(''Metros:'', d.metroCount\\); console.log\\(''Period:'', d.nationalDataPeriod\\); console.log\\(''First 3:'', d.metros.slice\\(0,3\\).map\\(m => m.name + '' \\('' + m.totalEmployment + ''K, '' + m.sectors.length + '' sectors\\)''\\)\\);\")",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const d = require\\(''./public/data/lq_all_metros.json''\\); const m = d.metros.find\\(m => m.slug === ''oklahoma-city-ok''\\); console.log\\(m ? m.name + '' '' + m.stateCode + ''-'' + m.areaCode : ''NOT FOUND''\\);\")",
+      "Bash(node -e \"const d = require\\(''./public/data/lq_all_metros.json''\\); const m = d.metros[0]; console.log\\(Object.keys\\(m\\)\\);\")",
+      "Bash(node -e \"const d = require\\(''./public/data/lq_all_metros.json''\\); console.log\\(d.metros.slice\\(0,3\\).map\\(m => m.name + '': '' + m.employmentGrowthPct + ''%''\\)\\);\")",
+      "Bash(git config:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

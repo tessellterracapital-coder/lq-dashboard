@@ -1,6 +1,10 @@
-import { NATIONAL_SERIES } from "@/data/nationalSeries";
+import {
+  NATIONAL_SERIES_COMPONENTS,
+  ALL_NATIONAL_SERIES_IDS,
+} from "@/data/nationalSeries";
 import { SUPERSECTORS, TOTAL_NONFARM_CODE } from "@/data/supersectors";
 import { buildMetroSeriesId } from "@/data/metros";
+import { classifyLQ, excessEmployment, type Classification } from "./lqMetrics";
 
 const BLS_PROXY_URL = "/api/bls";
 
@@ -43,7 +47,9 @@ export interface LQResult {
   nationalEmployment: number;
   nationalPctOfTotal: number;
   lq: number;
-  classification: "Export" | "Local" | "Import";
+  classification: Classification;
+  /** Jobs beyond what the metro needs to serve itself (thousands). Negative = net import. */
+  excessEmployment: number;
   hasData: boolean;
 }
 
@@ -107,28 +113,49 @@ function getMostRecentDataPoint(series: BLSSeries): BLSDataPoint | null {
 export async function fetchNationalData(): Promise<Map<string, EmploymentData>> {
   if (nationalCache.size > 0) return nationalCache;
 
-  const seriesIds = Object.values(NATIONAL_SERIES);
   const currentYear = new Date().getFullYear().toString();
   const startYear = (new Date().getFullYear() - 2).toString();
 
-  const results = await fetchBLSSeries(seriesIds, startYear, currentYear);
+  const results = await fetchBLSSeries(ALL_NATIONAL_SERIES_IDS, startYear, currentYear);
 
+  // seriesId -> dateKey -> data point
+  const bySeries = new Map<string, Map<string, BLSDataPoint>>();
   for (const series of results) {
-    const supersectorCode = Object.entries(NATIONAL_SERIES).find(
-      ([, id]) => id === series.seriesID
-    )?.[0];
-    if (!supersectorCode) continue;
+    const byDate = new Map<string, BLSDataPoint>();
+    for (const dp of series.data) {
+      if (dp.period === "M13") continue; // skip annual averages
+      byDate.set(`${dp.year}-${dp.period}`, dp);
+    }
+    bySeries.set(series.seriesID, byDate);
+  }
 
-    const dataPoint = getMostRecentDataPoint(series);
-    if (!dataPoint) continue;
+  // Sum component series per supersector at the most recent date where ALL
+  // components are present. A partial sum would understate the denominator.
+  for (const [supersectorCode, ids] of Object.entries(NATIONAL_SERIES_COMPONENTS)) {
+    const dateKeys = new Set<string>();
+    for (const id of ids) {
+      for (const dk of Array.from(bySeries.get(id)?.keys() ?? [])) dateKeys.add(dk);
+    }
+
+    const complete = Array.from(dateKeys)
+      .filter((dk) => ids.every((id) => bySeries.get(id)?.has(dk)))
+      .sort()
+      .reverse();
+
+    const mostRecent = complete[0];
+    if (!mostRecent) continue;
+
+    const parts = ids.map((id) => bySeries.get(id)!.get(mostRecent)!);
+    const total = parts.reduce((sum, dp) => sum + parseFloat(dp.value), 0);
+    if (isNaN(total)) continue;
 
     nationalCache.set(supersectorCode, {
-      seriesId: series.seriesID,
+      seriesId: ids.join("+"),
       supersectorCode,
-      value: parseFloat(dataPoint.value),
-      year: dataPoint.year,
-      period: dataPoint.period,
-      footnotes: dataPoint.footnotes,
+      value: total,
+      year: parts[0].year,
+      period: parts[0].period,
+      footnotes: parts.flatMap((dp) => dp.footnotes ?? []),
     });
   }
 
@@ -197,6 +224,7 @@ export function computeLQ(
         nationalPctOfTotal: 0,
         lq: 0,
         classification: "Import" as const,
+        excessEmployment: 0,
         hasData: false,
       };
     }
@@ -204,11 +232,7 @@ export function computeLQ(
     const localShare = local.value / localTotal;
     const nationalShare = national.value / nationalTotal;
     const lq = localShare / nationalShare;
-
-    let classification: "Export" | "Local" | "Import";
-    if (lq >= 1.2) classification = "Export";
-    else if (lq >= 0.8) classification = "Local";
-    else classification = "Import";
+    const rounded = Math.round(lq * 100) / 100;
 
     return {
       supersectorCode: sector.code,
@@ -217,8 +241,10 @@ export function computeLQ(
       localPctOfTotal: localShare * 100,
       nationalEmployment: national.value,
       nationalPctOfTotal: nationalShare * 100,
-      lq: Math.round(lq * 100) / 100,
-      classification,
+      lq: rounded,
+      classification: classifyLQ(rounded),
+      // Computed from the unrounded national share for accuracy.
+      excessEmployment: excessEmployment(local.value, localTotal, nationalShare * 100, rounded),
       hasData: true,
     };
   });
@@ -243,29 +269,41 @@ export async function fetchTrendData(
   if (trendCache.has(cacheKey)) return trendCache.get(cacheKey)!;
 
   const allCodes = [TOTAL_NONFARM_CODE, ...SUPERSECTORS.map((s) => s.code)];
-  const nationalSeriesIds = allCodes.map((code) => NATIONAL_SERIES[code]);
   const metroSeriesIds = allCodes.map((code) => buildMetroSeriesId(stateCode, areaCode, code));
 
-  // Fetch national and metro in parallel (22 series total fits in 50-series limit,
-  // but splitting avoids issues with series ID parsing)
+  // Fetch national and metro in parallel. Both stay within the 50-series limit.
   const [nationalResults, metroResults] = await Promise.all([
-    fetchBLSSeries(nationalSeriesIds, startYear, endYear),
+    fetchBLSSeries(ALL_NATIONAL_SERIES_IDS, startYear, endYear),
     fetchBLSSeries(metroSeriesIds, startYear, endYear),
   ]);
 
-  // Build lookup: date -> supersectorCode -> value for national data
-  const nationalByDate = new Map<string, Map<string, number>>();
+  // Build lookup: seriesId -> date -> value
+  const nationalBySeries = new Map<string, Map<string, number>>();
   for (const series of nationalResults) {
-    const supersectorCode = Object.entries(NATIONAL_SERIES).find(
-      ([, id]) => id === series.seriesID
-    )?.[0];
-    if (!supersectorCode) continue;
-
+    const byDate = new Map<string, number>();
     for (const dp of series.data) {
       if (dp.period === "M13") continue; // skip annual averages
-      const date = `${dp.year}-${periodToMonth(dp.period)}`;
+      byDate.set(`${dp.year}-${periodToMonth(dp.period)}`, parseFloat(dp.value));
+    }
+    nationalBySeries.set(series.seriesID, byDate);
+  }
+
+  // Collapse to: date -> supersectorCode -> summed value.
+  // Only emit a value when every component series has data for that date.
+  const nationalByDate = new Map<string, Map<string, number>>();
+  for (const [supersectorCode, ids] of Object.entries(NATIONAL_SERIES_COMPONENTS)) {
+    const dates = new Set<string>();
+    for (const id of ids) {
+      for (const d of Array.from(nationalBySeries.get(id)?.keys() ?? [])) dates.add(d);
+    }
+
+    for (const date of Array.from(dates)) {
+      const parts = ids.map((id) => nationalBySeries.get(id)?.get(date));
+      if (parts.some((v) => v === undefined || isNaN(v as number))) continue;
+
+      const total = (parts as number[]).reduce((sum, v) => sum + v, 0);
       if (!nationalByDate.has(date)) nationalByDate.set(date, new Map());
-      nationalByDate.get(date)!.set(supersectorCode, parseFloat(dp.value));
+      nationalByDate.get(date)!.set(supersectorCode, total);
     }
   }
 

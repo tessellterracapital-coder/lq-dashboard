@@ -43,19 +43,28 @@ const SUPERSECTOR_LABELS = {
   "90000000": "Government",
 };
 
-// National CES unseasoned series IDs we need
+// National CES unseasoned series IDs we need.
+//
+// NOTE: each supersector maps to an ARRAY of national series that are SUMMED to
+// form the LQ denominator. This matters for Mining, Logging & Construction:
+// the state/metro (SM) survey publishes a combined "15000000" supersector, but
+// the national (CE) survey has no equivalent — it reports Mining & Logging
+// (CEU1000000001) and Construction (CEU2000000001) separately. Mapping 15000000
+// to a non-existent "CEU1500000001" silently produced a null LQ for that sector
+// in every metro. Summing the two national components reconstructs the correct
+// denominator to match the SM combined series.
 const NATIONAL_SERIES = {
-  "00000000": "CEU0000000001",
-  "15000000": "CEU1500000001",
-  "30000000": "CEU3000000001",
-  "40000000": "CEU4000000001",
-  "50000000": "CEU5000000001",
-  "55000000": "CEU5500000001",
-  "60000000": "CEU6000000001",
-  "65000000": "CEU6500000001",
-  "70000000": "CEU7000000001",
-  "80000000": "CEU8000000001",
-  "90000000": "CEU9000000001",
+  "00000000": ["CEU0000000001"],
+  "15000000": ["CEU1000000001", "CEU2000000001"], // Mining & Logging + Construction
+  "30000000": ["CEU3000000001"],
+  "40000000": ["CEU4000000001"],
+  "50000000": ["CEU5000000001"],
+  "55000000": ["CEU5500000001"],
+  "60000000": ["CEU6000000001"],
+  "65000000": ["CEU6500000001"],
+  "70000000": ["CEU7000000001"],
+  "80000000": ["CEU8000000001"],
+  "90000000": ["CEU9000000001"],
 };
 
 // CES data files for each supersector (smaller than downloading the full file)
@@ -136,39 +145,75 @@ async function downloadAllFiles() {
 function parseNationalData(ceTexts) {
   console.log("\n[2/5] Parsing national CES data from flat files...");
 
-  const nationalSeriesSet = new Set(Object.values(NATIONAL_SERIES));
+  // Every national series ID we care about, across all supersectors
+  const wantedSeries = new Set(Object.values(NATIONAL_SERIES).flat());
+  // seriesId -> which supersector code(s) it contributes to
+  const seriesToCode = {};
+  for (const [code, ids] of Object.entries(NATIONAL_SERIES)) {
+    for (const id of ids) seriesToCode[id] = code;
+  }
 
-  // date -> supersectorCode -> value
-  const nationalByDate = {};
-  // supersectorCode -> most recent value
-  const nationalCurrent = {};
+  // seriesId -> dateKey -> { value, year, period, date }
+  const bySeries = {};
 
   for (const text of ceTexts) {
     const rows = parseTSV(text);
     for (const row of rows) {
       const sid = row.series_id;
-      if (!nationalSeriesSet.has(sid)) continue;
-      if (row.period === "M13") continue;
+      if (!wantedSeries.has(sid)) continue;
+      if (row.period === "M13") continue; // annual average
 
       const val = parseFloat(row.value);
       if (isNaN(val)) continue;
 
-      const code = Object.entries(NATIONAL_SERIES).find(([, id]) => id === sid)?.[0];
-      if (!code) continue;
+      const dateKey = `${row.year}-${row.period}`;
+      if (!bySeries[sid]) bySeries[sid] = {};
+      bySeries[sid][dateKey] = {
+        value: val,
+        year: row.year,
+        period: row.period,
+        date: `${row.year}-${periodToMonth(row.period)}`,
+      };
+    }
+  }
 
-      const year = parseInt(row.year);
-      const date = `${row.year}-${periodToMonth(row.period)}`;
+  // Warn loudly if an expected national series is missing entirely — this is the
+  // failure mode that previously produced silent null LQs.
+  for (const sid of wantedSeries) {
+    if (!bySeries[sid] || Object.keys(bySeries[sid]).length === 0) {
+      console.warn(`  WARNING: national series ${sid} (supersector ${seriesToCode[sid]}) returned no data`);
+    }
+  }
 
-      // Trend data (2015+)
-      if (year >= TREND_START_YEAR) {
+  // date -> supersectorCode -> summed value
+  const nationalByDate = {};
+  // supersectorCode -> most recent summed value
+  const nationalCurrent = {};
+
+  for (const [code, ids] of Object.entries(NATIONAL_SERIES)) {
+    // Union of all dateKeys across this supersector's component series
+    const dateKeys = new Set();
+    for (const id of ids) {
+      for (const dk of Object.keys(bySeries[id] ?? {})) dateKeys.add(dk);
+    }
+
+    for (const dateKey of dateKeys) {
+      // Only emit a value when EVERY component series has data for this date.
+      // A partial sum (e.g. Construction without Mining) would understate the
+      // denominator and inflate the LQ.
+      const parts = ids.map((id) => bySeries[id]?.[dateKey]);
+      if (parts.some((p) => p === undefined)) continue;
+
+      const total = parts.reduce((sum, p) => sum + p.value, 0);
+      const { year, period, date } = parts[0];
+
+      if (parseInt(year) >= TREND_START_YEAR) {
         if (!nationalByDate[date]) nationalByDate[date] = {};
-        nationalByDate[date][code] = val;
+        nationalByDate[date][code] = total;
       }
 
-      // Track most recent for current LQ
-      const dateKey = `${row.year}-${row.period}`;
       if (!nationalCurrent[code] || dateKey > nationalCurrent[code].dateKey) {
-        nationalCurrent[code] = { value: val, year: row.year, period: row.period, dateKey };
+        nationalCurrent[code] = { value: total, year, period, dateKey };
       }
     }
   }
@@ -179,8 +224,14 @@ function parseNationalData(ceTexts) {
     national[code] = { value: entry.value, year: entry.year, period: entry.period };
   }
 
+  const expectedCodes = Object.keys(NATIONAL_SERIES).length;
+  if (Object.keys(national).length < expectedCodes) {
+    const missing = Object.keys(NATIONAL_SERIES).filter((c) => !national[c]);
+    console.warn(`  WARNING: no national value for supersector(s): ${missing.join(", ")}`);
+  }
+
   console.log(
-    `  National data: ${Object.keys(national).length} series, period ${national["00000000"]?.period} ${national["00000000"]?.year}`
+    `  National data: ${Object.keys(national).length}/${expectedCodes} supersectors, period ${national["00000000"]?.period} ${national["00000000"]?.year}`
   );
   console.log(`  National trend data: ${Object.keys(nationalByDate).length} months`);
 
@@ -327,7 +378,14 @@ function buildAllMetroData(
         nationalEmployment: nationalValue,
         nationalPctOfTotal: Math.round(nationalShare * 1000) / 10,
         lq,
-        classification: lq >= 1.2 ? "Export" : lq >= 0.8 ? "Local" : "Import",
+        // LQ > 1.0 means the metro produces more than it consumes — the surplus
+        // is exported. This is definitional (economic base theory), not a
+        // statistical threshold. Exactly 1.0 = produces precisely what it needs.
+        classification: lq > 1.0 ? "Export" : lq < 1.0 ? "Import" : "Local",
+        // Excess (basic) employment: jobs beyond what the metro needs to serve
+        // itself. Computed from unrounded shares. This — not the LQ ratio — is
+        // the magnitude an employment multiplier acts on.
+        excessEmployment: Math.round((localValue - localTotal * nationalShare) * 10) / 10,
       });
     }
 
@@ -391,7 +449,15 @@ function buildAllMetroData(
     // Summary metrics
     const sorted = [...sectors].sort((a, b) => b.lq - a.lq);
     const topExport = sorted[0];
-    const exportCount = sectors.filter((s) => s.lq >= 1.2).length;
+    const exportCount = sectors.filter((s) => s.lq > 1.0).length;
+
+    // Export base: total jobs beyond local need. Sum of positive excess only.
+    // Conservative floor — cross-hauling within broad supersectors nets out and
+    // is therefore invisible here, so the true base is larger.
+    const exportBaseJobs =
+      Math.round(sectors.reduce((sum, s) => sum + Math.max(0, s.excessEmployment), 0) * 10) / 10;
+    const exportBasePct =
+      totalNonfarm > 0 ? Math.round((exportBaseJobs / totalNonfarm) * 1000) / 10 : 0;
     const largestSector = [...sectors].sort((a, b) => b.pctOfTotal - a.pctOfTotal)[0];
 
     // Classify area type: MSA vs Metropolitan Division
@@ -411,6 +477,8 @@ function buildAllMetroData(
       topExportSector: topExport.label,
       topExportLQ: topExport.lq,
       exportCount,
+      exportBaseJobs,
+      exportBasePct,
       largestSector: largestSector.label,
       largestSectorPct: largestSector.pctOfTotal,
       sectors,

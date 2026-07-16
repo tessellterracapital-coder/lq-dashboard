@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import { type LQResult } from "@/lib/blsApi";
+import { formatJobs } from "@/lib/lqMetrics";
 
 interface DataTableProps {
   results: LQResult[];
 }
 
-type SortKey = "label" | "localEmployment" | "localPctOfTotal" | "lq" | "classification";
+type SortKey =
+  | "label"
+  | "localEmployment"
+  | "localPctOfTotal"
+  | "lq"
+  | "excessEmployment"
+  | "classification";
 type SortDir = "asc" | "desc";
 
 export default function DataTable({ results }: DataTableProps) {
@@ -72,6 +79,13 @@ export default function DataTable({ results }: DataTableProps) {
               LQ <SortIcon column="lq" />
             </th>
             <th
+              className="px-4 py-3 text-xs uppercase tracking-wider text-gray-500 cursor-pointer hover:text-gray-300 text-right"
+              onClick={() => handleSort("excessEmployment")}
+              title="Jobs beyond what the metro needs to serve itself — the export base"
+            >
+              Excess Jobs <SortIcon column="excessEmployment" />
+            </th>
+            <th
               className="px-4 py-3 text-xs uppercase tracking-wider text-gray-500 cursor-pointer hover:text-gray-300"
               onClick={() => handleSort("classification")}
             >
@@ -95,14 +109,20 @@ export default function DataTable({ results }: DataTableProps) {
               <td className="px-4 py-3 text-right font-mono font-bold">
                 <span
                   className={
-                    row.lq >= 1.2
+                    row.lq > 1.0
                       ? "text-blue-400"
-                      : row.lq < 0.8
+                      : row.lq < 1.0
                       ? "text-red-400"
                       : "text-gray-300"
                   }
                 >
                   {row.lq.toFixed(2)}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-right font-mono">
+                <span className={row.excessEmployment > 0 ? "text-emerald-400" : "text-gray-500"}>
+                  {row.excessEmployment > 0 ? "+" : ""}
+                  {formatJobs(row.excessEmployment)}
                 </span>
               </td>
               <td className="px-4 py-3">

@@ -44,8 +44,31 @@ LQ = (Local industry employment / Total local employment) / (National industry e
 
 **Interpretation:**
 - **LQ > 1.0** → Export sector. The area produces more than it consumes locally — it "exports" to the rest of the world. This is the economic engine that brings outside money into the region.
-- **LQ ≈ 1.0** → Service/local sector. Matches national proportions; serves local population.
+- **LQ = 1.0** → Balanced. Produces precisely what it consumes.
 - **LQ < 1.0** → Import sector. The area is underrepresented; it imports this activity from elsewhere.
+
+**Threshold — 1.0, not 1.2 (decided; do not reintroduce a buffer):**
+
+The export/import cutoff is **1.0 everywhere** — classification, chart colors, export counts. This is definitional arithmetic from economic base theory (a surplus is exported), not a statistical inference, so there is nothing to significance-test and no basis for a buffer.
+
+An earlier build classified Export at LQ ≥ 1.2. That constant appeared exactly once in this spec, scoped to a single summary card, and was then over-applied to the global classification — contradicting the conceptual definition above and the bar chart's own 1.0 reference line. It is also the wrong instrument for significance:
+- New York, Professional & Business Services: LQ **1.16**, ~**220,000** excess jobs → a 1.2 cutoff discards it as "Local"
+- Guayama, PR, Government: LQ **2.21**, ~**2,600** excess jobs → a 1.2 cutoff keeps it
+
+No ratio threshold can fix this, because LQ is a ratio and significance is a magnitude. Note also that classical hypothesis testing does not help: with metro employment in the hundreds of thousands, a two-proportion z-test flags LQ 1.02 at p < 0.0001. Every deviation is "significant," so the test cannot discriminate.
+
+**Significance — excess (basic) employment:**
+
+```
+expected = metro total employment × national industry share
+excess   = actual − expected          (identical to: actual × (1 − 1/LQ))
+```
+
+Excess employment is the count of jobs beyond what the metro needs to serve itself — the export base, in jobs. It is the quantity an employment multiplier (1.5–3×) acts on. The `(1 − 1/LQ)` term is the share of that sector's jobs which are exporting: LQ 2.0 → 50% exported, LQ 1.5 → 33%, LQ 1.05 → 4.8%.
+
+A metro's **export base** = the sum of *positive* excess across sectors. This is a conservative floor: cross-hauling within broad supersectors (shipping out truck parts while importing electronics — both "Manufacturing") nets out and is invisible, so the true base is larger.
+
+Implementation lives in `src/lib/lqMetrics.ts` (single source of truth) and is mirrored in `scripts/build-screening-data.mjs`. Classification is derived from the LQ at read time in `useLQData`, so data files built under the old 1.2 threshold cannot leak a stale classification into the UI.
 
 **Why it matters for real estate:**
 - High-LQ sectors drive employment demand → population growth → housing demand
@@ -241,7 +264,7 @@ Download the BLS area codes file from `https://download.bls.gov/pub/time.series/
 3. Computes LQ for each supersector
 4. Displays:
    - **Horizontal bar chart** — supersectors sorted by LQ, with a reference line at LQ = 1.0. Bars to the right of 1.0 are export sectors (color them green/blue), bars to the left are import sectors (gray/red).
-   - **Summary cards** — Top export sector (name + LQ), number of export sectors (LQ > 1.2), top sector concentration (% of total employment for the largest sector, flag if > 25%)
+   - **Summary cards** — Top export sector (name + LQ), number of export sectors (LQ > 1.0), export base (total excess employment in jobs, and as % of total), top sector concentration (% of total employment for the largest sector, flag if > 25%)
    - **Data table** — Industry, Employment (thousands), % of Total, LQ, Classification (Export/Local/Import)
 
 **Caching:** Cache national data in memory (it's the same for every metro). Cache metro results in a Map so switching back to a previously viewed metro is instant.
@@ -381,7 +404,7 @@ Dark theme, data-dense, professional. Think Bloomberg terminal meets modern dash
 
 - **Dark background** (`#0f1117`) with card surfaces (`#1a1d27`)
 - **Monospace font** (JetBrains Mono) for data, clean sans-serif for labels
-- **Color coding:** Green/blue for export sectors (LQ > 1.0), gray for local, red for concentration warnings
+- **Color coding:** Blue for export sectors (LQ > 1.0), gray at exactly 1.0, red for import sectors (LQ < 1.0). The color break must match the 1.0 reference line — an earlier build drew the line at 1.0 but broke color at 1.2, rendering above-average sectors in "local" gray to the right of the line.
 - **Gold reference line** at LQ = 1.0 on all bar charts
 - **Minimal chrome** — the data is the interface
 - **Responsive** — must work well on mobile (significant portion of traffic will be mobile)

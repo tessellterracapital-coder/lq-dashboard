@@ -47,8 +47,9 @@ function shortenLabel(label: string): string {
 }
 
 function getColor(lq: number): string {
-  if (lq >= 1.2) return "#3b82f6";
-  if (lq >= 0.8) return "#6b7280";
+  // Matches the 1.0 reference line: above it exports, below it imports.
+  if (lq > 1.0) return "#3b82f6";
+  if (lq === 1.0) return "#6b7280";
   return "#ef4444";
 }
 

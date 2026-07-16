@@ -154,7 +154,7 @@ export default function ComparePage() {
               const withData = metro.lqResults.filter((r) => r.hasData);
               const sorted = [...withData].sort((a, b) => b.lq - a.lq);
               const topExport = sorted[0];
-              const exportCount = withData.filter((r) => r.lq >= 1.2).length;
+              const exportCount = withData.filter((r) => r.lq > 1.0).length;
 
               return (
                 <div

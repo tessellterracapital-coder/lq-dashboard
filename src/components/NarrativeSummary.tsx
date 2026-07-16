@@ -26,7 +26,7 @@ export default function NarrativeSummary({ metroName, results, trendData }: Narr
 
   const sorted = [...withData].sort((a, b) => b.lq - a.lq);
   const topExport = sorted[0];
-  const exportSectors = withData.filter((r) => r.lq >= 1.2);
+  const exportSectors = withData.filter((r) => r.lq > 1.0);
   const hhi = computeHHI(results);
   const grade = getGrade(hhi);
   const gradeLabel = getGradeLabel(grade);

@@ -65,9 +65,9 @@ export default function CompareSummaryTable({ metros }: CompareSummaryTableProps
                     {lq !== null ? (
                       <span
                         className={
-                          lq >= 1.2
+                          lq > 1.0
                             ? "text-blue-400"
-                            : lq < 0.8
+                            : lq < 1.0
                             ? "text-red-400"
                             : "text-gray-300"
                         }

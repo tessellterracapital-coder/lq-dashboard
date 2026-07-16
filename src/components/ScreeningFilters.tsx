@@ -120,7 +120,8 @@ export default function ScreeningFilters({
       </div>
 
       {/* Search + employment size + growth + concentration */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Metro name — spans full width on mobile, 2 cols on lg */}
         <div className="sm:col-span-2 lg:col-span-2">
           <label className="text-xs text-gray-500 block mb-1">Metro name</label>
           <input
@@ -131,28 +132,55 @@ export default function ScreeningFilters({
             className="w-full px-3 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
           />
         </div>
+
+        {/* Employment range */}
         <div>
-          <label className="text-xs text-gray-500 block mb-1">Min employment (K)</label>
-          <input
-            type="number"
-            placeholder="e.g. 100"
-            value={filters.minEmployment}
-            onChange={(e) => update({ minEmployment: e.target.value })}
-            className="w-full px-3 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
-          />
+          <label className="text-xs text-gray-500 block mb-1">Employment (K)</label>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              placeholder="Min"
+              value={filters.minEmployment}
+              onChange={(e) => update({ minEmployment: e.target.value })}
+              className="w-full px-2 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-gray-600 text-xs shrink-0">—</span>
+            <input
+              type="number"
+              placeholder="Max"
+              value={filters.maxEmployment}
+              onChange={(e) => update({ maxEmployment: e.target.value })}
+              className="w-full px-2 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            />
+          </div>
         </div>
+
+        {/* Growth range */}
         <div>
-          <label className="text-xs text-gray-500 block mb-1">Min growth (%)</label>
-          <input
-            type="number"
-            step="0.1"
-            placeholder="e.g. 5"
-            value={filters.minGrowth}
-            onChange={(e) => update({ minGrowth: e.target.value })}
-            className="w-full px-3 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
-          />
+          <label className="text-xs text-gray-500 block mb-1">10Y growth (%)</label>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Min"
+              value={filters.minGrowth}
+              onChange={(e) => update({ minGrowth: e.target.value })}
+              className="w-full px-2 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-gray-600 text-xs shrink-0">—</span>
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Max"
+              value={filters.maxGrowth}
+              onChange={(e) => update({ maxGrowth: e.target.value })}
+              className="w-full px-2 py-2 bg-[#0f1117] border border-gray-700 rounded text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            />
+          </div>
         </div>
-        <div>
+
+        {/* Max concentration — second row, aligned left */}
+        <div className="sm:col-span-2 lg:col-span-1">
           <label className="text-xs text-gray-500 block mb-1">Max concentration (%)</label>
           <input
             type="number"
