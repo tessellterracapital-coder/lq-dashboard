@@ -5,18 +5,19 @@
  * ---------
  * An LQ above 1.0 means a metro employs more people in a sector than its own
  * population consumes. That surplus is, by definition, exported — it draws
- * outside dollars into the region. Below 1.0 the metro is a net importer of
- * that activity. This is definitional arithmetic from economic base theory,
- * not a statistical inference, so there is nothing to "test" and no basis for
- * a buffer above 1.0.
+ * outside dollars into the region. Below 1.0 the sector is smaller than the
+ * national mix; see the Classification type for why that is not the same as
+ * importing. This is definitional arithmetic from economic base theory, not a
+ * statistical inference, so there is nothing to "test" and no basis for a
+ * buffer above 1.0.
  *
  * A previous version classified Export at LQ >= 1.2. That constant came from a
  * single line of the product spec scoped to one summary card, and was then
  * over-applied to the global classification — contradicting the same spec's
  * conceptual definition (LQ > 1.0) and the bar chart's own 1.0 reference line.
  * A ratio threshold is also the wrong instrument for significance: New York's
- * Professional & Business Services sits at LQ 1.16 with ~220,000 excess jobs,
- * while Guayama, PR's Government sits at LQ 2.21 with ~2,600. Any ratio cutoff
+ * Professional & Business Services sits at LQ 1.15 with ~211,600 excess jobs,
+ * while Guayama, PR's Government sits at LQ 2.25 with ~2,700. Any ratio cutoff
  * discards the former and keeps the latter.
  *
  * SIGNIFICANCE

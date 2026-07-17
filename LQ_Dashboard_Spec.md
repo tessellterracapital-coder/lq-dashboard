@@ -65,8 +65,8 @@ LQ = (Local industry employment / Total local employment) / (National industry e
 The export/import cutoff is **1.0 everywhere** — classification, chart colors, export counts. This is definitional arithmetic from economic base theory (a surplus is exported), not a statistical inference, so there is nothing to significance-test and no basis for a buffer.
 
 An earlier build classified Export at LQ ≥ 1.2. That constant appeared exactly once in this spec, scoped to a single summary card, and was then over-applied to the global classification — contradicting the conceptual definition above and the bar chart's own 1.0 reference line. It is also the wrong instrument for significance:
-- New York, Professional & Business Services: LQ **1.16**, ~**220,000** excess jobs → a 1.2 cutoff discards it as "Local"
-- Guayama, PR, Government: LQ **2.21**, ~**2,600** excess jobs → a 1.2 cutoff keeps it
+- New York, Professional & Business Services: LQ **1.15**, ~**211,600** excess jobs → a 1.2 cutoff discards it as "Balanced"
+- Guayama, PR, Government: LQ **2.25**, ~**2,700** excess jobs → a 1.2 cutoff keeps it
 
 No ratio threshold can fix this, because LQ is a ratio and significance is a magnitude. Note also that classical hypothesis testing does not help: with metro employment in the hundreds of thousands, a two-proportion z-test flags LQ 1.02 at p < 0.0001. Every deviation is "significant," so the test cannot discriminate.
 

@@ -63,18 +63,34 @@ export default function AboutPage() {
               local demand requires. The surplus is &quot;exported.&quot;
             </li>
             <li>
-              <strong className="text-gray-200">LQ &asymp; 1.0</strong> &mdash; Local sector.
-              Matches national proportions; primarily serves the local population.
+              <strong className="text-gray-200">LQ &asymp; 1.0</strong> &mdash; Balanced.
+              Matches national proportions; produces about what it consumes.
             </li>
             <li>
-              <strong className="text-gray-200">LQ &lt; 1.0</strong> &mdash; Import sector.
-              The area is underrepresented and effectively imports this activity from elsewhere.
+              <strong className="text-gray-200">LQ &lt; 1.0</strong> &mdash; Under-represented
+              sector. The sector is smaller than the national mix. Where the activity is
+              tradable, that does imply importing it &mdash; a metro light on manufacturing
+              buys those goods from somewhere else. Where it is place-bound, it does not:
+              Los Angeles has a construction LQ of 0.71, but LA is not importing buildings
+              from Ohio &mdash; construction happens where the building goes. The same is
+              true of healthcare, government and leisure. The honest reading is the plain
+              one: there is less of it here than the national mix would predict.
             </li>
           </ul>
           <p>
-            This tool uses a threshold of <strong className="text-gray-200">LQ &ge; 1.2</strong> to
-            classify export sectors, providing a buffer to account for measurement noise and
-            seasonal variation.
+            The export cutoff is <strong className="text-gray-200">1.0</strong>, with no
+            buffer. An LQ above 1.0 means the metro employs more people in a sector than its
+            own population consumes, and that surplus is exported by definition. This is
+            arithmetic from economic base theory, not a statistical inference &mdash; there
+            is nothing to significance-test, and so no basis for padding the threshold.
+          </p>
+          <p>
+            A ratio is also the wrong instrument for significance. New York&apos;s
+            Professional &amp; Business Services sits at LQ 1.15 with roughly 211,600 excess
+            jobs; Guayama, PR&apos;s Government sits at LQ 2.25 with about 2,700. A 1.2
+            cutoff would discard the first and keep the second. Magnitude is carried by{" "}
+            <strong className="text-gray-200">excess employment</strong> &mdash; the count of
+            jobs beyond what the metro needs to serve itself &mdash; not by the ratio.
           </p>
         </div>
       </section>

@@ -233,7 +233,7 @@ export default function Home() {
             {
               step: "2",
               title: "Read the LQ chart",
-              desc: "Blue bubbles (LQ > 1.0) are export sectors — they produce more than the metro consumes. The gold line marks 1.0. Red indicates import sectors.",
+              desc: "Blue bubbles (LQ > 1.0) are export sectors — they produce more than the metro consumes. The gold line marks 1.0. Red means the sector is smaller than the national mix.",
             },
             {
               step: "3",
