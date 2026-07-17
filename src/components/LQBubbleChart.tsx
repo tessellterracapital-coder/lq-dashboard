@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { type LQResult } from "@/lib/blsApi";
 import { type TrendResult } from "@/lib/blsApi";
-import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
+import { computeMatchedGrowth, paddedDomain, lqColorClass, classifyLQ } from "@/lib/lqMetrics";
 import BubbleLabelLayer from "./BubbleLabelLayer";
 
 interface LQBubbleChartProps {
@@ -48,11 +48,13 @@ function shortenLabel(label: string): string {
   return map[label] ?? label;
 }
 
+// Derived from classifyLQ, so the bubble fill, the LQ in its tooltip and the
+// label all break at the same place — the 1.0 reference line drawn on this chart.
 function getColor(lq: number): string {
-  // Matches the 1.0 reference line: above it exports, below it imports.
-  if (lq > 1.0) return "#3b82f6";
-  if (lq === 1.0) return "#6b7280";
-  return "#ef4444";
+  const c = classifyLQ(lq);
+  if (c === "Export") return "#3b82f6";
+  if (c === "Under-represented") return "#ef4444";
+  return "#6b7280"; // Balanced, exactly 1.0
 }
 
 function computeGrowth(trendData: TrendResult, supersectorCode: string): number | null {
@@ -203,7 +205,7 @@ export default function LQBubbleChart({ results, trendData, metroName }: LQBubbl
                   <div className="font-semibold text-gray-200 mb-1">{d.label}</div>
                   <div className="text-sm space-y-0.5">
                     <div className="text-gray-400">
-                      LQ: <span className={`font-mono ${d.lq >= 1.2 ? "text-blue-400" : d.lq < 0.8 ? "text-red-400" : "text-gray-100"}`}>{d.lq.toFixed(2)}</span>
+                      LQ: <span className={`font-mono ${lqColorClass(d.lq, "text-gray-100")}`}>{d.lq.toFixed(2)}</span>
                     </div>
                     <div className="text-gray-400">
                       Growth: <span className={`font-mono ${d.growth >= 0 ? "text-green-400" : "text-red-400"}`}>{d.growth >= 0 ? "+" : ""}{d.growth.toFixed(1)}%</span>

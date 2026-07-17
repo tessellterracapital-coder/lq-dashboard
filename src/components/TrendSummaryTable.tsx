@@ -1,7 +1,7 @@
 "use client";
 
 import { type TrendResult } from "@/lib/blsApi";
-import { growthWindow } from "@/lib/lqMetrics";
+import { growthWindow, lqColorClass } from "@/lib/lqMetrics";
 
 interface TrendSummaryTableProps {
   trendData: TrendResult;
@@ -102,7 +102,7 @@ export default function TrendSummaryTable({ trendData }: TrendSummaryTableProps)
               </td>
               <td className="px-4 py-3 text-right font-mono">
                 {row.lastLQ !== null ? (
-                  <span className={row.lastLQ >= 1.2 ? "text-blue-400" : row.lastLQ < 0.8 ? "text-red-400" : "text-gray-300"}>
+                  <span className={lqColorClass(row.lastLQ)}>
                     {row.lastLQ.toFixed(2)}
                   </span>
                 ) : "N/A"}

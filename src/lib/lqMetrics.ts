@@ -60,6 +60,31 @@ export function isExport(lq: number): boolean {
 }
 
 /**
+ * Text colour for an LQ, derived from classifyLQ so the two cannot disagree:
+ * blue where the label says Export, red where it says Under-represented,
+ * neutral at exactly 1.0.
+ *
+ * Kept here rather than written at each call site. Six components had drifted to
+ * colouring at 1.2/0.8 while classification, the bubble fill and the charts'
+ * reference line all broke at 1.0 — so 48.9% of sector rows rendered against
+ * their own label. 788 export sectors carrying 4.47M jobs (21.5% of the national
+ * export base) printed in neutral grey, New York's Professional & Business
+ * Services among them: labelled Export, drawn as a blue bubble, its LQ greyed in
+ * its own tooltip.
+ *
+ * A neutral band around 1.0 is a buffer, and the buffer is the thing that was
+ * removed from the threshold — see the header. Do not reintroduce one here.
+ *
+ * `neutral` varies by surface: tooltips sit on a darker panel than tables.
+ */
+export function lqColorClass(lq: number, neutral = "text-gray-300"): string {
+  const c = classifyLQ(lq);
+  if (c === "Export") return "text-blue-400";
+  if (c === "Under-represented") return "text-red-400";
+  return neutral;
+}
+
+/**
  * Excess (basic) employment — jobs beyond what the metro needs to serve itself.
  *
  *   expected = metroTotalEmployment x nationalShare

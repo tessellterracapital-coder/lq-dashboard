@@ -12,18 +12,22 @@ import {
   Cell,
 } from "recharts";
 import { type LQResult } from "@/lib/blsApi";
+import { classifyLQ } from "@/lib/lqMetrics";
 
 interface LQBarChartProps {
   results: LQResult[];
   metroName?: string;
 }
 
+// Derived from classifyLQ so the fill cannot disagree with the label or with
+// the 1.0 reference line drawn on this chart. The previous version claimed to
+// match that line but returned grey for anything from 0.8 up — so 1,098 sector
+// rows (28.5%) rendered neutral while labelled Under-represented.
 function getBarColor(lq: number): string {
-  // Color break matches the 1.0 reference line drawn on this chart.
-  if (lq > 1.0) return "#3b82f6"; // blue-500 — export
-  if (lq === 1.0) return "#6b7280"; // gray-500 — balanced
-  if (lq >= 0.8) return "#6b7280"; // gray-500 — local
-  return "#ef4444"; // red-500 — import
+  const c = classifyLQ(lq);
+  if (c === "Export") return "#3b82f6"; // blue-500
+  if (c === "Under-represented") return "#ef4444"; // red-500
+  return "#6b7280"; // gray-500 — Balanced, exactly 1.0
 }
 
 function shortenLabel(label: string): string {

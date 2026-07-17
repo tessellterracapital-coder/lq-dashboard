@@ -12,6 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { type TrendResult } from "@/lib/blsApi";
+import { lqColorClass } from "@/lib/lqMetrics";
 
 const SECTOR_COLORS: Record<string, string> = {
   "15000000": "#ef4444",
@@ -111,7 +112,7 @@ export default function TrendLQChart({ trendData, visibleSectors }: TrendLQChart
                         <div key={i} className="flex items-center gap-2 text-sm">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
                           <span className="text-gray-400 truncate">{series ? shortenLabel(series.label) : String(entry.dataKey ?? "")}</span>
-                          <span className={`font-mono ml-auto ${lq >= 1.2 ? "text-blue-400" : lq < 0.8 ? "text-red-400" : "text-gray-100"}`}>
+                          <span className={`font-mono ml-auto ${lqColorClass(lq, "text-gray-100")}`}>
                             {lq.toFixed(2)}
                           </span>
                         </div>

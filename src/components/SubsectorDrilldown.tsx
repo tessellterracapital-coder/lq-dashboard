@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { type LQResult } from "@/lib/blsApi";
+import { lqColorClass } from "@/lib/lqMetrics";
 
 // Sub-industries within each supersector (2-digit NAICS level)
 // These are the main subdivisions BLS publishes at the metro level
@@ -91,9 +92,7 @@ export default function SubsectorDrilldown({ results }: SubsectorDrilldownProps)
                     <span className="font-mono text-gray-400">{r.localEmployment.toFixed(1)}K</span>
                     <span className="font-mono text-gray-400">{r.localPctOfTotal.toFixed(1)}%</span>
                     <span
-                      className={`font-mono font-bold w-12 text-right ${
-                        r.lq >= 1.2 ? "text-blue-400" : r.lq < 0.8 ? "text-red-400" : "text-gray-300"
-                      }`}
+                      className={`font-mono font-bold w-12 text-right ${lqColorClass(r.lq)}`}
                     >
                       {r.lq.toFixed(2)}
                     </span>

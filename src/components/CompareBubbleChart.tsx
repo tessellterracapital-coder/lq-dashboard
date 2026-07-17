@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { type MetroLQData } from "@/lib/useMultiLQData";
 import { type TrendResult } from "@/lib/blsApi";
-import { computeMatchedGrowth, paddedDomain } from "@/lib/lqMetrics";
+import { computeMatchedGrowth, paddedDomain, lqColorClass } from "@/lib/lqMetrics";
 import BubbleLabelLayer from "./BubbleLabelLayer";
 
 const METRO_COLORS = ["#3b82f6", "#f59e0b", "#10b981"];
@@ -231,7 +231,7 @@ export default function CompareBubbleChart({ metros }: CompareBubbleChartProps) 
                   <div className="text-sm text-gray-400 mb-1">{d.label}</div>
                   <div className="text-sm space-y-0.5">
                     <div className="text-gray-400">
-                      LQ: <span className={`font-mono ${d.lq >= 1.2 ? "text-blue-400" : d.lq < 0.8 ? "text-red-400" : "text-gray-100"}`}>{d.lq.toFixed(2)}</span>
+                      LQ: <span className={`font-mono ${lqColorClass(d.lq, "text-gray-100")}`}>{d.lq.toFixed(2)}</span>
                     </div>
                     <div className="text-gray-400">
                       Growth: <span className={`font-mono ${d.growth >= 0 ? "text-green-400" : "text-red-400"}`}>{d.growth >= 0 ? "+" : ""}{d.growth.toFixed(1)}%</span>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type ScreeningMetro } from "@/lib/screeningData";
+import { lqColorClass } from "@/lib/lqMetrics";
 
 type SortKey =
   | "name"
@@ -133,7 +134,7 @@ export default function ScreeningTable({ metros }: ScreeningTableProps) {
                 {metro.topExportSector}
               </td>
               <td className="px-4 py-3 text-right font-mono font-bold">
-                <span className={metro.topExportLQ >= 1.2 ? "text-blue-400" : "text-gray-300"}>
+                <span className={lqColorClass(metro.topExportLQ)}>
                   {metro.topExportLQ.toFixed(2)}
                 </span>
               </td>
